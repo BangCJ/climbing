@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.TerminalMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.TerminalInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="room_id" jdbcType="VARCHAR" property="roomId" />
+    <result column="room_name" jdbcType="VARCHAR" property="roomName" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, code ,name ,status,type,room_id,room_name,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+     code ,name ,status,type,room_id,room_name,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    terminal_info
+  </sql>
+
+  <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="userId != null">
+      where id =#{id}
+    </if>
+  </select>
+
+  <insert id="addTerminalInfo" parameterType="com.bang.ap.dp.web.entity.TerminalInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{code,jdbcType=VARCHAR},
+    #{name,jdbcType=VARCHAR},
+    #{status,jdbcType=VARCHAR},
+    #{type,jdbcType=VARCHAR},
+    #{rootId,jdbcType=VARCHAR},
+    #{roomName,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+  <update id="updateTerminalInfo" parameterType="com.bang.ap.dp.web.entity.TerminalInfo" >
+    update
+    <include refid="Base_Column_List" />
+    <set >
+      <if test="code != null and code !='' " >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null and name !='' " >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null and status !='' " >
+        status = #{status,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null and type !='' " >
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null" >
+        updateTime = #{updateTime,jdbcType=TIMESTAMP}
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+
+  <select id="selectPage"   parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="searchMap.roomId!=null and searchMap.roomId!='' ">
+        and room_id = #{searchMap.roomId}
+      </if>
+      <if test="searchMap.code!=null and searchMap.code!='' ">
+        and code like CONCAT(CONCAT('%', #{searchMap.code}), '%')
+      </if>
+      <if test="searchMap.name!=null and searchMap.name!='' ">
+        and name like CONCAT(CONCAT('%', #{searchMap.name}), '%')
+      </if>
+      <if test="searchMap.status!=null and searchMap.status!='' ">
+        and status  = #{searchMap.status}
+      </if>
+      <if test="searchMap.type!=null and searchMap.type!='' ">
+        and type  = #{searchMap.type}
+      </if>
+
+    </where>
+  </select>
+
+</mapper>

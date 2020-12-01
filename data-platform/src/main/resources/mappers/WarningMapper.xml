@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.WarningMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.WarningInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="warning_content" jdbcType="VARCHAR" property="warningContent" />
+    <result column="warning_type" jdbcType="VARCHAR" property="warningType" />
+    <result column="warning_time" jdbcType="VARCHAR" property="warningTime" />
+    <result column="warning_area" jdbcType="VARCHAR" property="warningArea" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, code ,warning_content ,warning_type,warning_time,warning_area,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+     code ,warning_content ,warning_type,warning_time,warning_area,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    warning_info
+  </sql>
+
+  <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="userId != null">
+      where id =#{id}
+    </if>
+  </select>
+
+  <insert id="addWarningInfo" parameterType="com.bang.ap.dp.web.entity.WarningInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{code,jdbcType=VARCHAR},
+    #{warningContent,jdbcType=VARCHAR},
+    #{warningType,jdbcType=VARCHAR},
+    #{warningTime,jdbcType=VARCHAR},
+    #{warningArea,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+
+  <select id="selectPage"   parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="searchMap.code!=null and searchMap.code!='' ">
+        and code like CONCAT(CONCAT('%', #{searchMap.code}), '%')
+      </if>
+      <if test="searchMap.warningType!=null and searchMap.warningType!='' ">
+        and warning_type = #{searchMap.warningType}
+      </if>
+
+      <if test="searchMap.startTime!=null and searchMap.startTime!='' ">
+        <![CDATA[and create_time >= #{searchMap.startTime}]]>
+      </if>
+      <if test="searchMap.endTime!=null and searchMap.endTime!=''">
+        <![CDATA[and create_time <= #{searchMap.endTime}]]>
+      </if>
+    </where>
+  </select>
+
+</mapper>

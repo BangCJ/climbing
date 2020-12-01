@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.LoginLogMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.LoginLog">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="login_userid" jdbcType="VARCHAR" property="loginUserId" />
+    <result column="login_username" jdbcType="VARCHAR" property="loginUserName" />
+    <result column="login_ip" jdbcType="VARCHAR" property="loginIp" />
+    <result column="login_time" jdbcType="VARCHAR" property="loginTime" />
+    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
+    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, login_userid ,login_username,login_ip ,login_time,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+   login_userid ,login_username,login_ip ,login_time,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    login_log
+  </sql>
+
+  <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="id != null">
+      where id =#{id}
+    </if>
+  </select>
+
+  <insert id="addLoginLog" parameterType="com.bang.ap.dp.web.entity.LoginLog">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{loginUserId,jdbcType=VARCHAR},
+    #{loginUserName,jdbcType=VARCHAR},
+    #{loginIp,jdbcType=VARCHAR},
+    #{loginTime,jdbcType=VARCHAR},
+    #{createTime,jdbcType=VARCHAR},
+    #{updateTime,jdbcType=VARCHAR}
+    )
+  </insert>
+
+  <select id="selectPage"   parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="searchMap.loginUserId!=null and searchMap.loginUserId!='' ">
+        and login_userId like CONCAT(CONCAT('%', #{searchMap.loginUserId}), '%')
+      </if>
+      <if test="searchMap.loginUserName!=null and searchMap.loginUserName!='' ">
+        and login_userName like CONCAT(CONCAT('%', #{searchMap.loginUserName}), '%')
+      </if>
+      <if test="searchMap.loginIp!=null and searchMap.loginIp!='' ">
+        and login_ip like CONCAT(CONCAT('%', #{searchMap.loginIp}), '%')
+      </if>
+      <if test="searchMap.startTime!=null and searchMap.startTime!='' ">
+        <![CDATA[and login_time >= #{searchMap.startTime}]]>
+      </if>
+      <if test="searchMap.endTime!=null and searchMap.endTime!=''">
+        <![CDATA[and login_time <= #{searchMap.endTime}]]>
+      </if>
+    </where>
+  </select>
+
+
+</mapper>

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.RoomMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.RoomInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="owner" jdbcType="VARCHAR" property="owner" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, code ,name ,owner,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+    code ,name ,owner,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+   room_info
+  </sql>
+
+  <select id="selectById" parameterType="int" resultType="com.bang.ap.dp.web.entity.RoomInfo" >
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="roomId != null">
+      where id =#{roomId}
+    </if>
+  </select>
+
+  <insert id="addRoomInfo" parameterType="com.bang.ap.dp.web.entity.RoomInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{code,jdbcType=VARCHAR},
+    #{name,jdbcType=VARCHAR},
+    #{owner,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+  <select id="getRoomList" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="id != null and id !='' ">
+        and id = #{id}
+      </if>
+      <if test="code != null and code !='' ">
+        and code = #{code}
+      </if>
+      <if test="name != null and name !='' ">
+        and name = #{name}
+      </if>
+    </where>
+  </select>
+
+  <update id="updateRoomInfo" parameterType="com.bang.ap.dp.web.entity.RoomInfo" >
+    update
+    <include refid="Base_Column_List" />
+    <set >
+      <if test="code != null and code !='' " >
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null and name !='' " >
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="displayName != null and displayName !='' " >
+        owner = #{owner,jdbcType=VARCHAR},
+      </if>
+
+      <if test="updateTime != null and updateTime !=''" >
+        updateTime = #{updateTime,jdbcType=TIMESTAMP}
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+
+  <select id="selectPage"   parameterType="map" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="searchMap.code!=null and searchMap.code!='' ">
+        and code like CONCAT(CONCAT('%', #{searchMap.code}), '%')
+      </if>
+      <if test="searchMap.owner!=null and searchMap.owner!='' ">
+        and owner like CONCAT(CONCAT('%', #{searchMap.owner}), '%')
+      </if>
+    </where>
+  </select>
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.MonitorDataMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.MonitorData">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="monitor_type" jdbcType="VARCHAR" property="monitorType" />
+    <result column="unit" jdbcType="VARCHAR" property="unit" />
+    <result column="value" jdbcType="VARCHAR" property="value" />
+    <result column="origin_data_time" jdbcType="VARCHAR" property="originDateTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, code ,name ,monitor_type,unit,value,origin_data_time,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+     code ,name ,monitor_type,unit,value,origin_data_time,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    monitor_data
+  </sql>
+
+  <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="userId != null">
+      where id =#{id}
+    </if>
+  </select>
+
+  <select id="getMonitorDataByParam" parameterType="com.bang.ap.dp.web.entity.MonitorData" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="id != null and id !='' ">
+        and id = #{id}
+      </if>
+      <if test="code != null and code !='' ">
+        and code = #{code}
+      </if>
+      <if test="name != null and name !='' ">
+        and name = #{name}
+      </if>
+    </where>
+  </select>
+
+  <insert id="addMonitorData" parameterType="com.bang.ap.dp.web.entity.MonitorData">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{code,jdbcType=VARCHAR},
+    #{name,jdbcType=VARCHAR},
+    #{monitorType,jdbcType=VARCHAR},
+    #{unit,jdbcType=VARCHAR},
+    #{value,jdbcType=VARCHAR},
+    #{originDateTime,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+
+
+
+</mapper>
