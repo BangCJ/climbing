@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.PwdMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.PwdInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="user_id" jdbcType="BIGINT" property="userId" />
+    <result column="user_code" jdbcType="VARCHAR" property="userCode" />
+    <result column="pwd" jdbcType="VARCHAR" property="pwd" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, user_id ,user_code ,pwd ,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+    user_id ,user_code ,pwd ,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    pwd_info
+  </sql>
+
+  <select id="getPwdByUserId" parameterType="int" resultType="com.bang.ap.dp.web.entity.PwdInfo" >
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="userId != null">
+      where user_id =#{userId}
+    </if>
+  </select>
+
+  <select id="getPwdByUserCode" parameterType="String" resultType="com.bang.ap.dp.web.entity.PwdInfo" >
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="userId != null">
+      where user_code =#{userCode}
+    </if>
+  </select>
+
+  <insert id="addPwdInfo" parameterType="com.bang.ap.dp.web.entity.PwdInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{userId,jdbcType=BIGINT},
+    #{userCode,jdbcType=VARCHAR},
+    #{pwd,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+
+  <update id="updatePwdInfo" parameterType="com.bang.ap.dp.web.entity.PwdInfo" >
+    update
+    <include refid="Base_Table" />
+    <set >
+      <if test="pwd != null and pwd !='' " >
+        pwd = #{pwd},
+      </if>
+    </set>
+    <where>
+      <if test="userId != null and userId !='' ">
+        and user_id = #{userId}
+      </if>
+      <if test="userCode != null and userCode !='' ">
+        and user_code = #{userCode}
+      </if>
+    </where>
+  </update>
+
+</mapper>

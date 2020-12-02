@@ -34,7 +34,31 @@
     </if>
   </select>
 
-  <insert id="addUserInfo" parameterType="com.bang.ap.dp.web.entity.UserInfo">
+  <select id="getUserByUserInfo" parameterType="com.bang.ap.dp.web.entity.UserInfo" resultMap="UserResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <where>
+      <if test="code != null and code !='' ">
+        and code = #{code}
+      </if>
+      <if test="name != null and name !='' ">
+        and name = #{name}
+      </if>
+      <if test="phone != null and phone !='' ">
+      and phone = #{phone}
+    </if>
+      <if test="email != null and email !='' ">
+        and email = #{email}
+      </if>
+    </where>
+
+
+  </select>
+
+  <insert id="addUserInfo" keyProperty="id"  useGeneratedKeys="true" parameterType="com.bang.ap.dp.web.entity.UserInfo">
     insert into
       <include refid="Base_Table" />
     (

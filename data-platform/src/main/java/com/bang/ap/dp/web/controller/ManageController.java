@@ -4,12 +4,14 @@ import com.alibaba.fastjson.JSONObject;
 import com.bang.ap.dp.utils.PageRequest;
 import com.bang.ap.dp.utils.PageResult;
 import com.bang.ap.dp.utils.ResponseUtil;
+import com.bang.ap.dp.web.entity.PwdInfo;
 import com.bang.ap.dp.web.entity.RoomInfo;
 import com.bang.ap.dp.web.entity.UserInfo;
 import com.bang.ap.dp.web.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -35,6 +37,9 @@ public class ManageController {
 
     @Autowired
     private RoomService roomService;
+
+    @Autowired
+    private PwdService pwdService;
 
     @RequestMapping(path = "/getUserList", method = RequestMethod.GET)
     @ResponseBody
@@ -67,6 +72,7 @@ public class ManageController {
         try {
             userInfo.setCreateTime(new Date());
             userInfo.setUpdateTime(new Date());
+            userService.checkRepeat(userInfo);
             if (userInfo.getId() != 0) {
                 userService.updateUserInfo(userInfo);
             }
@@ -226,6 +232,66 @@ public class ManageController {
         }
         return ResponseUtil.buildSuccessResponse(pageResult);
 
+    }
+
+
+    @RequestMapping(path = "/checkPwd", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject checkPwd(@RequestBody JSONObject loginInfo) {
+        try {
+            String code= (String) loginInfo.get("code");
+            String pwd= (String) loginInfo.get("pwd");
+            if (StringUtils.isEmpty(code)||StringUtils.isEmpty(pwd)){
+                return ResponseUtil.buildFailureResponse("用户名和密码不能为空");
+            }
+            if (pwdService.checkPwd(code,pwd)){
+                return ResponseUtil.buildSuccessResponse();
+            }else{
+                return ResponseUtil.buildFailureResponse("用户名或密码错误");
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseUtil.buildFailureResponse("登录失败");
+        }
+    }
+
+    @RequestMapping(path = "/resetPwd", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject resetPwd(@RequestBody JSONObject userCodeObj) {
+        try {
+            String code= (String) userCodeObj.get("userCode");
+            PwdInfo pwdInfo =new PwdInfo();
+            pwdInfo.setPwd("123456");
+            pwdInfo.setUserCode(code);
+            pwdInfo.setUpdateTime(new Date());
+            pwdService.updatePwdInfo(pwdInfo);
+            return ResponseUtil.buildSuccessResponse();
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseUtil.buildFailureResponse("操作失败");
+        }
+    }
+
+    @RequestMapping(path = "/changePwd", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject reseatPwd(@RequestBody JSONObject pwdChangeInfo) {
+        try {
+            String userCode= (String) pwdChangeInfo.get("userCode");
+            String oldPwd= (String) pwdChangeInfo.get("oldPwd");
+            String newPwd= (String) pwdChangeInfo.get("newPwd");
+            if(!pwdService.checkPwd(userCode,oldPwd)){
+                return ResponseUtil.buildFailureResponse("原始密码不正确");
+            }
+            PwdInfo pwdInfo =new PwdInfo();
+            pwdInfo.setPwd(newPwd);
+            pwdInfo.setUserCode(userCode);
+            pwdInfo.setUpdateTime(new Date());
+            pwdService.updatePwdInfo(pwdInfo);
+            return ResponseUtil.buildSuccessResponse();
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return ResponseUtil.buildFailureResponse("操作失败");
+        }
     }
 
 }

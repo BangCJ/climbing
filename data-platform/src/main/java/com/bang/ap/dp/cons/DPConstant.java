@@ -18,5 +18,12 @@ public class DPConstant {
 
 	public static final String PARAMETER_EMPTY="";
 
+	public static final String DEFAULT_PWD="123456";
+
+	public static final String REGEX_EMAIL ="^[a-zA-Z0-9\u4e00-\u9fa5]+([._\\-]*[a-zA-Z0-9\u4e00-\u9fa5])*@([a-zA-Z0-9-]+\\.){1,63}[a-zA-Z0-9]+$";
+
+	public static final String REGEX_PHONE = "^((13[0-9])|(15[^4])|(18[0,2,3,5-9])|(17[0-8])|(147))\\d{8}$";
+
+
 
 }

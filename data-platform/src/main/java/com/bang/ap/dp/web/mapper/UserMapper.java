@@ -12,9 +12,11 @@ public interface UserMapper {
 
     UserInfo selectById(long userId);
 
+    List<UserInfo> getUserByUserInfo(UserInfo userInfo);
+
     List<UserInfo> getUserList();
 
-    void addUserInfo(UserInfo userInfo);
+    int addUserInfo(UserInfo userInfo);
 
 
     void updateUserInfo(UserInfo userInfo);

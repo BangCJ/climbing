@@ -12,6 +12,8 @@ public interface UserService {
 
     UserInfo getUserById(int id);
 
+    List<UserInfo> getUserByUserInfo(UserInfo userInfo);
+
     void addUserInfo(UserInfo userInfo);
 
     void updateUserInfo(UserInfo userInfo);
@@ -19,6 +21,9 @@ public interface UserService {
     List<UserInfo> getUserList();
 
     PageResult findPage(PageRequest pageRequest, Map<String, Object> searchMap);
+
+    boolean checkRepeat(UserInfo userInfo) throws Exception;
+
 
 
 
