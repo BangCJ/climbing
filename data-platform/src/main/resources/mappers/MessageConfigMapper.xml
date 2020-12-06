@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.MessageConfigMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.MessageReceiverInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="email_enable" jdbcType="BOOLEAN" property="emailEnable" />
+    <result column="sms_enable" jdbcType="BOOLEAN" property="smsEnable" />
+    <result column="voice_enable" jdbcType="BOOLEAN" property="voiceEnable" />
+    <result column="receiver_string" jdbcType="VARCHAR" property="receiverString" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, email_enable ,sms_enable ,voice_enable,receiver_string,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+     email_enable ,sms_enable ,voice_enable,receiver_string,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    message_config
+  </sql>
+
+  <select id="getMessageReceiveConfigList"  resultMap="BaseResultMap" >
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+  </select>
+
+
+
+  <insert id="addMessageReceiveConfig" keyProperty="id"  useGeneratedKeys="true" parameterType="com.bang.ap.dp.web.entity.MessageReceiverInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{emailEnable,jdbcType=BOOLEAN},
+    #{smsEnable,jdbcType=BOOLEAN},
+    #{voiceEnable,jdbcType=BOOLEAN},
+    #{receiverString,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
+    )
+  </insert>
+
+
+
+  <update id="updateMessageReceiveConfig" parameterType="com.bang.ap.dp.web.entity.MessageReceiverInfo" >
+    update
+    <include refid="Base_Table" />
+    <set >
+
+        email_enable = #{emailEnable,jdbcType=BOOLEAN},
+
+
+        sms_enable = #{smsEnable,jdbcType=BOOLEAN},
+
+
+        voice_enable = #{voiceEnable,jdbcType=BOOLEAN},
+
+      <if test="receiverString != null and receiverString !='' " >
+        receiver_string = #{receiverString,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id}
+  </update>
+
+
+</mapper>

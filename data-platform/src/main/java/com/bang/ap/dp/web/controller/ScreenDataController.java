@@ -49,8 +49,10 @@ public class ScreenDataController {
             if (null == frequenceList || frequenceList.size() < 0) {
                 return ResponseUtil.buildFailureResponse("查询数据为空");
             }
-            response = ResponseUtil.buildSuccessResponse(frequenceList);
-            response.put("rate", rate);
+            JSONObject dataObject=new JSONObject();
+            dataObject.put("rate", rate);
+            dataObject.put("allData", frequenceList);
+            response = ResponseUtil.buildSuccessResponse(dataObject);
             return response;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

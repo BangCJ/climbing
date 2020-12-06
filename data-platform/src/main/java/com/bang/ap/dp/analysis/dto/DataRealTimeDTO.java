@@ -9,7 +9,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DataRealTimeDTO {
     public String currentDataTime;
-    public String nextTimeValue;
-    public String realTimeValue;
-    public String type;
+
+    public String realSmoke;
+    public String nextSmoke;
+
+    public String realTemperature;
+    public String nextTemperature;
+
+    public String realGas;
+    public String nextGas;
 }

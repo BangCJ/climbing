@@ -13,4 +13,5 @@ public class StrangerInfoDTO {
     public String name;
     public String times;
     public String picture;
+    public String dataTime;
 }

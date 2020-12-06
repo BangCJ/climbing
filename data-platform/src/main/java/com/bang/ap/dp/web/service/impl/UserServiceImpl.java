@@ -38,9 +38,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserInfo getUserById(int id) {
         UserInfo user = (UserInfo) redisTemplate.opsForValue().get("userObj");
-        if (null != user) {
-            return user;
-        }
+
         user = userMapper.selectById(id);
         redisTemplate.opsForValue().set("userObj", user,10, TimeUnit.MINUTES);
         return user;

@@ -11,5 +11,5 @@ import java.util.List;
 @AllArgsConstructor
 public class TerminalResponseDTO {
     public List<TerminalAmountDTO> teminal;
-    public TerminalHealthCheckDTO healthCheck;
+    public List<TerminalHealthCheckDTO> healthCheck;
 }

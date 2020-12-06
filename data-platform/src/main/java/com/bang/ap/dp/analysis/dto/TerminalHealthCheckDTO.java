@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TerminalHealthCheckDTO {
-    public String unHealthyRate;
-    public String healthyRate;
+    public String name;
+    public int value;
 }

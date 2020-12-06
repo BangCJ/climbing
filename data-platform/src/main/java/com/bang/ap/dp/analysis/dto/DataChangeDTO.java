@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class DataChangeDTO {
     public String dataTime;
-    public String changeValue;
-    public String type;
+
+    public String smokehangeValue;
+
+    public String temperaturehangeValue;
+
+    public String gashangeValue;
 }
