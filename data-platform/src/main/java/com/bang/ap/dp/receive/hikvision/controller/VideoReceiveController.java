@@ -1,4 +1,4 @@
-package com.bang.ap.dp.receive.controller;
+package com.bang.ap.dp.receive.hikvision.controller;
 
 import com.alibaba.fastjson.JSONObject;
 import com.bang.ap.dp.cons.UrlConstant;
@@ -42,10 +42,10 @@ public class VideoReceiveController {
         JSONObject jsonObject=new JSONObject();
         jsonObject.put("transmode",1);
         jsonObject.put("cameraIndexCode",id);
-        jsonObject.put("streamType",0);
-        jsonObject.put("protocol","rtsp");
+        jsonObject.put("streamType",1);
+        jsonObject.put("protocol","hls");
         jsonObject.put("streamform","ps");
-        jsonObject.put("expand","transcode=0");
+        jsonObject.put("expand","transcode=1&resolution=D1&bitrate=512&framerate=15&videotype=h264&systemformat=rtp&audiotype=AAC&samples=8000&audiobitrate=64000&bitspersample=16");
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_VIDEO_PREVIEW,jsonObject);
         return result;
     }
@@ -63,14 +63,30 @@ public class VideoReceiveController {
         jsonObject.put("recordLocation",0);
         jsonObject.put("protocol","rtsp");
         jsonObject.put("transmode",0);
-        jsonObject.put("beginTime","2017-06-15T00:00:00.000+08:00");
-        jsonObject.put("endTime","2017-06-15T00:00:00.000+08:00");
-        jsonObject.put("uuid","4750e3a4a5bbad3cda5bbad3cd4af9ed5101");
-        jsonObject.put("expand","transcode=0");
+        jsonObject.put("beginTime","2020-12-07T15:00:00.000+08:00");
+        jsonObject.put("endTime","2017-12-07T16:00:00.000+08:00");
+        jsonObject.put("uuid","");
         jsonObject.put("streamform","ps");
         jsonObject.put("lockType",0);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_VIDEO_PALYBACK,jsonObject);
         return result;
     }
 
+
+    /**
+     * 查询编码设备列表v2
+     * @return
+     */
+    @RequestMapping(path = "/encodeDevice/list", method = RequestMethod.GET)
+    @ResponseBody
+    public String getEncodeDeviceList() {
+        JSONObject jsonObject=new JSONObject();
+        jsonObject.put("pageNo",1);
+        jsonObject.put("pageSize",10);
+        String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_VIDEO_ENCODEDEVICE,jsonObject);
+        log.info(result);
+        return result;
+
+
+    }
 }

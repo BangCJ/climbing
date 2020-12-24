@@ -8,7 +8,10 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomUseTimeDTO {
-    public String id;
-    public String time;
+    public int id;
+    public int roomId;
+    public String timeLength;
     public String date;
+    public String createTime;
+    public String updateTime;
 }

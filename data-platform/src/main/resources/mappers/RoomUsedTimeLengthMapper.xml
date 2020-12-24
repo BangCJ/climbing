@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="room_id" jdbcType="VARCHAR" property="roomId" />
+    <result column="time_length" jdbcType="VARCHAR" property="timeLength" />
+    <result column="date" jdbcType="VARCHAR" property="date" />
+    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
+    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, room_id ,time_length,date ,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+   room_id ,time_length,date ,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    room_used_time
+  </sql>
+
+
+  <select id="getRoomUseTimeDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+  <where>
+    <if test="id != null">
+      and id =#{id}
+    </if>
+
+    <if test="roomId != null">
+      and room_id =#{roomId}
+    </if>
+
+    <if test="date != null">
+      and  date =#{date}
+    </if>
+  </where>
+  </select>
+
+  <select id="getTop7RoomUseTime" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <where>
+      <if test="id != null">
+        and id =#{id}
+      </if>
+
+      <if test="roomId != null">
+        and room_id =#{roomId}
+      </if>
+
+      <if test="date != null">
+        and date =#{date}
+      </if>
+
+    </where>
+    order by date desc
+    limit 7
+  </select>
+
+  <insert id="insertFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{roomId,jdbcType=INTEGER},
+    #{timeLength,jdbcType=VARCHAR},
+    #{date,jdbcType=VARCHAR},
+    #{createTime,jdbcType=VARCHAR},
+    #{updateTime,jdbcType=VARCHAR}
+    )
+  </insert>
+
+  <update id="updateFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO" >
+    update
+    <include refid="Base_Table" />
+    <set >
+      <if test="times != null and times !='' " >
+        time_length = #{timeLength},
+      </if>
+    </set>
+    <where>
+      <if test="roomId != null and roomId !='' ">
+        and room_id = #{roomId}
+      </if>
+      <if test="date != null and date !='' ">
+        and date = #{date}
+      </if>
+    </where>
+  </update>
+
+
+
+
+</mapper>

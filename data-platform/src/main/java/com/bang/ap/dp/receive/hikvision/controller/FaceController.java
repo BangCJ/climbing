@@ -1,9 +1,9 @@
-package com.bang.ap.dp.receive.controller;
+package com.bang.ap.dp.receive.hikvision.controller;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bang.ap.dp.cons.UrlConstant;
 import com.bang.ap.dp.utils.HikvisionUtil;
+import com.bang.ap.dp.utils.PictureUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,10 +30,10 @@ public class FaceController {
         String startTime=request.getParameter("startTime");
         String endTime=request.getParameter("endTime");
         JSONObject jsonObject=new JSONObject();
-        jsonObject.put("pageNo",pageNo);
-        jsonObject.put("pageSize",pageSize);
-        jsonObject.put("startTime",startTime);
-        jsonObject.put("endTime",endTime);
+        jsonObject.put("pageNo",1);
+        jsonObject.put("pageSize",20);
+        jsonObject.put("startTime","2020-12-07T17:53:11.484+08:00");
+        jsonObject.put("endTime","2020-12-07T17:30:08.000+08:00");
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_NORMAL_,jsonObject);
         log.info("按条件查询人脸抓拍事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_NORMAL_,jsonObject.toJSONString(),request);
         return result;
@@ -139,6 +139,31 @@ public class FaceController {
         return "success";
     }
 
+
+    @RequestMapping(path = "/picturlDown", method = RequestMethod.POST)
+    @ResponseBody
+    public String getPreviewURLs(@RequestBody JSONObject jsonObject) {
+
+
+        String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,jsonObject);
+        JSONObject resultObject= JSONObject.parseObject(result);
+        String data=resultObject.get("data").toString();
+        PictureUtil.GenerateImage(data,"/Users/chenjianbang/Downloads/11.jpg");
+        return result;
+    }
+
+
+    @RequestMapping(path = "/captureSearch", method = RequestMethod.POST)
+    @ResponseBody
+    public String captureSearch(@RequestBody JSONObject jsonObject) {
+        String facePicBinaryData=PictureUtil.GetImageStr("/Users/chenjianbang/Downloads/33.jpeg");
+        jsonObject.put("facePicBinaryData",facePicBinaryData);
+
+        String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_CAPTURESEARCH,jsonObject);
+        JSONObject resultObject= JSONObject.parseObject(result);
+
+        return result;
+    }
 
 
 }

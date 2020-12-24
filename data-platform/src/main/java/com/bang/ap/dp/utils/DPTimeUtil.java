@@ -2,6 +2,8 @@ package com.bang.ap.dp.utils;
 
 import com.bang.ap.dp.cons.DPConstant;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormat;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
@@ -55,7 +57,7 @@ public class DPTimeUtil {
         }
     }
 
-    public static String formatDate(Date date,String pattern) {
+    public static String formatDate(Date date, String pattern) {
         synchronized (sdf) {
             return sdf.format(date);
         }
@@ -111,4 +113,35 @@ public class DPTimeUtil {
         Date tomorrow = c.getTime();
         return tomorrow;
     }
+
+
+    /**
+     * 将传入的ISO8601 时间字符串，转成成指定格式的Local时区字(UTC+8)符串
+     */
+    public static String isoStr2utc8Str(String isoStr, String pattern) {
+        org.joda.time.format.DateTimeFormatter isoformat = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        DateTime dt = isoformat.parseDateTime(isoStr);
+        org.joda.time.format.DateTimeFormatter format = DateTimeFormat.forPattern(pattern);
+        return dt.toString(format);
+    }
+
+    /**
+     * 将传入的指定格式的Local时区字(UTC+8)符串，转成ISO8601时间字符串
+     */
+    public static String utc8Str2IsoStr(String isoStr, String pattern) {
+        org.joda.time.format.DateTimeFormatter isoformat = DateTimeFormat.forPattern(pattern);
+        DateTime dt = isoformat.parseDateTime(isoStr);
+        org.joda.time.format.DateTimeFormatter format = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        return dt.toString(format);
+    }
+
+    /**
+     * 将传入的DateTime，转成ISO8601符串
+     */
+    public static String dateTime2IsoStr(DateTime dateTime) {
+        org.joda.time.format.DateTimeFormatter format = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        return dateTime.toString(format);
+    }
+
+
 }

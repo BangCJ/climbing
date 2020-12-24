@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.FrequenceInRoomMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="room_id" jdbcType="VARCHAR" property="roomId" />
+    <result column="times" jdbcType="VARCHAR" property="times" />
+    <result column="date" jdbcType="VARCHAR" property="date" />
+    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
+    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, room_id ,times,date ,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+   room_id ,times,date ,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    room_frequence
+  </sql>
+
+  <select id="getFrequenceInRoomDTOById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+  <where>
+    <if test="id != null">
+      and id =#{id}
+    </if>
+  </where>
+  </select>
+
+  <select id="getFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+  <where>
+    <if test="id != null">
+      and id =#{id}
+    </if>
+
+    <if test="roomId != null">
+      and room_id =#{roomId}
+    </if>
+
+    <if test="date != null">
+      and date =#{date}
+    </if>
+  </where>
+  </select>
+
+  <select id="getTop7FrequenceByRoomId" parameterType="String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+   <where>
+    <if test="id != null">
+       and room_id =#{roomId}
+    </if>
+   </where>
+    order by date desc
+    limit 7
+  </select>
+
+  <insert id="insertFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{roomId,jdbcType=VARCHAR},
+    #{times,jdbcType=VARCHAR},
+    #{date,jdbcType=VARCHAR},
+    #{createTime,jdbcType=VARCHAR},
+    #{updateTime,jdbcType=VARCHAR}
+    )
+  </insert>
+
+  <update id="updateFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO" >
+    update
+    <include refid="Base_Table" />
+    <set >
+      <if test="times != null and times !='' " >
+        times = #{times},
+      </if>
+    </set>
+    <where>
+      <if test="roomId != null and roomId !='' ">
+        and room_id = #{roomId}
+      </if>
+      <if test="date != null and date !='' ">
+        and date = #{date}
+      </if>
+    </where>
+  </update>
+
+
+
+
+</mapper>

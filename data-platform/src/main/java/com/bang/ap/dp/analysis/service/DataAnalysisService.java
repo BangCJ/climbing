@@ -9,7 +9,7 @@ public interface DataAnalysisService {
 
     List<FrequenceInRoomDTO> getFrequenceOfRoomInOneWeek(String rooId);
 
-    List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(String rooId);
+    List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(int rooId);
 
     int getRooUserdRateInOneWeek(String rooId);
 

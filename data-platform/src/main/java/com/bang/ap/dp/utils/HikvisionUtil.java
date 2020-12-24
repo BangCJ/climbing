@@ -31,11 +31,11 @@ public class HikvisionUtil {
          * STEP1：设置平台参数，根据实际情况,设置host appkey appsecret 三个参数.
          */
         // artemis网关服务器ip端口
-        ArtemisConfig.host = "";
+        ArtemisConfig.host = "121.248.106.152:443";
         // 秘钥appkey
-        ArtemisConfig.appKey = "";
+        ArtemisConfig.appKey = "29878310";
         // 秘钥appSecret
-        ArtemisConfig.appSecret = "";
+        ArtemisConfig.appSecret = "CapXj8aphSlJSMKWOUD2";
         /**
          * STEP2：设置OpenAPI接口的上下文
          */

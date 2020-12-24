@@ -24,6 +24,11 @@ public class ScreenDataController {
     @Autowired
     private DataAnalysisService dataAnalysisService;
 
+    /**
+     * 实验室进出人次分析
+     * @param id
+     * @return
+     */
     @RequestMapping(path = "/timesOfRoom/{id}", method = RequestMethod.GET)
     @ResponseBody
     public JSONObject timesOfRoom(@PathVariable String id) {

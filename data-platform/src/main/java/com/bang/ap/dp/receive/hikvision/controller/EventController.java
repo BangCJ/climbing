@@ -1,4 +1,4 @@
-package com.bang.ap.dp.receive.controller;
+package com.bang.ap.dp.receive.hikvision.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;

@@ -16,6 +16,8 @@ public class DPConstant {
 
 	public static final String DATE_FORMAT_DATETYPE="yyyy-MM-dd";
 
+	public static final String DATE_FORMAT_IOS8601="yyyy-MM-dd'T'HH:mm:ss.SSSZ";
+
 	public static final String PARAMETER_EMPTY="";
 
 	public static final String DEFAULT_PWD="123456";

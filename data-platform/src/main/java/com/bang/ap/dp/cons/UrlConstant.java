@@ -17,6 +17,10 @@ public class UrlConstant {
      * 获取监控点回放取流URLv2
      */
     public static final String URL_VIDEO_PALYBACK="/api/video/v2/cameras/playbackURLs";
+    /**
+     * 查询编码设备列表v2
+     */
+    public static final String URL_VIDEO_ENCODEDEVICE="/api/resource/v2/encodeDevice/search";
 
 
 
@@ -56,6 +60,16 @@ public class UrlConstant {
      * 按条件查询高频人员识别事件
      */
     public static final String URL_FACE_EVENT_HITHFREQUENCY_="/api/frs/v1/event/high_frequency/search";
+
+    /**
+     * 人脸服务图片下载
+     */
+    public static final String URL_FACE_PICTURE_DOWN_="/api/frs/v1/application/picture";
+
+    /**
+     * 以图搜图
+     */
+    public static final String URL_FACE_PICTURE_CAPTURESEARCH="/api/frs/v1/application/captureSearch";
 
 
 

@@ -9,6 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FrequenceInRoomDTO {
     public String id;
+    public String roomId;
     public String times;
     public String date;
+    public String createTime;
+    public String updateTime;
 }
