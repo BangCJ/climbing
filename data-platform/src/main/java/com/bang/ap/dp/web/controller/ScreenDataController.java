@@ -46,7 +46,7 @@ public class ScreenDataController {
 
     @RequestMapping(path = "/timeOfRoom/{id}", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject timeOfRoom(@PathVariable String id) {
+    public JSONObject timeOfRoom(@PathVariable int id) {
         JSONObject response ;
         try {
             List<RoomUseTimeDTO> frequenceList = dataAnalysisService.getRoomUsedTimeInOneWeek(id);

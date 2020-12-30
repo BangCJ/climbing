@@ -4,14 +4,16 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class FrequenceInRoomDTO {
-    public String id;
-    public String roomId;
-    public String times;
-    public String date;
-    public String createTime;
-    public String updateTime;
+    public int id;
+    public int roomId;
+    public int times;
+    public String checkDate;
+    public Date createTime;
+    public Date updateTime;
 }

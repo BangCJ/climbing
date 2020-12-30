@@ -58,8 +58,9 @@ public class DPTimeUtil {
     }
 
     public static String formatDate(Date date, String pattern) {
-        synchronized (sdf) {
-            return sdf.format(date);
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
+        synchronized (simpleDateFormat) {
+            return simpleDateFormat.format(date);
         }
     }
 
@@ -97,6 +98,16 @@ public class DPTimeUtil {
         c.add(Calendar.DAY_OF_MONTH, -1);
         Date yesterday = c.getTime();
         return yesterday;
+    }
+
+    public static String getYesterday(String pattern) {
+        Date today = new Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(today);
+        c.add(Calendar.DAY_OF_MONTH, -1);
+        Date yesterday = c.getTime();
+        String yesterdayString = DPTimeUtil.formatDate(yesterday, pattern);
+        return yesterdayString;
     }
 
 
@@ -141,6 +152,37 @@ public class DPTimeUtil {
     public static String dateTime2IsoStr(DateTime dateTime) {
         org.joda.time.format.DateTimeFormatter format = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
         return dateTime.toString(format);
+    }
+
+    public static String getEarlier(String time1, String time2) {
+        org.joda.time.format.DateTimeFormatter isoformat = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        DateTime dt1 = isoformat.parseDateTime(time1);
+        DateTime dt2 = isoformat.parseDateTime(time2);
+        if (dt1.isAfter(dt2)) {
+            return time2;
+        }
+        return time1;
+
+    }
+
+    public static String getLater(String time1, String time2) {
+        org.joda.time.format.DateTimeFormatter isoformat = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        DateTime dt1 = isoformat.parseDateTime(time1);
+        DateTime dt2 = isoformat.parseDateTime(time2);
+        if (dt1.isBefore(dt2)) {
+            return time2;
+        }
+        return time1;
+    }
+
+    public static long getInterval(String time1, String time2) {
+        org.joda.time.format.DateTimeFormatter isoformat = DateTimeFormat.forPattern(DPConstant.DATE_FORMAT_IOS8601);
+        DateTime dt1 = isoformat.parseDateTime(time1);
+        DateTime dt2 = isoformat.parseDateTime(time2);
+        long inte = dt2.getMillis() - dt1.getMillis();
+        long diffMinutes = inte / (60 * 1000 * 60);
+        return diffMinutes;
+
     }
 
 

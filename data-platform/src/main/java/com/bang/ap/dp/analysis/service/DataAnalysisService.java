@@ -11,7 +11,7 @@ public interface DataAnalysisService {
 
     List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(int rooId);
 
-    int getRooUserdRateInOneWeek(String rooId);
+    int getRooUserdRateInOneWeek(int rooId);
 
     HighFrequenceResponseDTO  getHighFrequenceInfo();
 

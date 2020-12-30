@@ -21,9 +21,9 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
         List<FrequenceInRoomDTO> frequenceInRoomDTOS=new ArrayList<>();
         for (int i = 1; i < 8 ; i++) {
             FrequenceInRoomDTO frequenceInRoomDTO=new FrequenceInRoomDTO();
-            frequenceInRoomDTO.setRoomId(String.valueOf(i));
-            frequenceInRoomDTO.setTimes(String.valueOf(i));
-            frequenceInRoomDTO.setDate(DPTimeUtil.formatDate(today, DPConstant.DATE_FORMAT_DATETYPE));
+            frequenceInRoomDTO.setRoomId(i);
+            frequenceInRoomDTO.setTimes(i);
+            frequenceInRoomDTO.setCheckDate(DPTimeUtil.formatDate(today, DPConstant.DATE_FORMAT_DATETYPE));
             frequenceInRoomDTOS.add(frequenceInRoomDTO);
             today=DPTimeUtil.getYesterday();
 
@@ -32,13 +32,13 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
     }
 
     @Override
-    public List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(String id) {
+    public List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(int id) {
         Date today = new Date();
         List<RoomUseTimeDTO> roomUseTimeDTOS=new ArrayList<>();
         for (int i = 1; i <8 ; i++) {
             RoomUseTimeDTO roomUseTimeDTO=new RoomUseTimeDTO();
             roomUseTimeDTO.setId(i);
-            roomUseTimeDTO.setTimeLength(String.valueOf(i+10));
+            roomUseTimeDTO.setTimeLength(i+10);
             roomUseTimeDTO.setDate(DPTimeUtil.formatDate(today, DPConstant.DATE_FORMAT_DATETYPE));
             roomUseTimeDTOS.add(roomUseTimeDTO);
             today=DPTimeUtil.getYesterday();
@@ -48,7 +48,7 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
     }
 
     @Override
-    public int getRooUserdRateInOneWeek(String id) {
+    public int getRooUserdRateInOneWeek(int id) {
         return 65;
     }
 

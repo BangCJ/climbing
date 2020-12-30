@@ -3,18 +3,18 @@
 <mapper namespace="com.bang.ap.dp.web.mapper.FrequenceInRoomMapper">
   <resultMap id="BaseResultMap" type="com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="room_id" jdbcType="VARCHAR" property="roomId" />
-    <result column="times" jdbcType="VARCHAR" property="times" />
-    <result column="date" jdbcType="VARCHAR" property="date" />
-    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
-    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+    <result column="room_id" jdbcType="BIGINT" property="roomId" />
+    <result column="times" jdbcType="BIGINT" property="times" />
+    <result column="check_date" jdbcType="VARCHAR" property="checkDate" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, room_id ,times,date ,create_time,update_time
+    id, room_id ,times,check_date ,create_time,update_time
   </sql>
   <sql id="Add_Column_List">
-   room_id ,times,date ,create_time,update_time
+   room_id ,times,check_date ,create_time,update_time
   </sql>
   <sql id="Base_Table">
     room_frequence
@@ -40,16 +40,13 @@
     <include refid="Base_Table" />
 
   <where>
-    <if test="id != null">
-      and id =#{id}
-    </if>
 
     <if test="roomId != null">
       and room_id =#{roomId}
     </if>
 
-    <if test="date != null">
-      and date =#{date}
+    <if test="checkDate != null">
+      and check_date =#{checkDate}
     </if>
   </where>
   </select>
@@ -65,7 +62,7 @@
        and room_id =#{roomId}
     </if>
    </where>
-    order by date desc
+    order by check_date desc
     limit 7
   </select>
 
@@ -77,11 +74,11 @@
     )
     values
     (
-    #{roomId,jdbcType=VARCHAR},
-    #{times,jdbcType=VARCHAR},
-    #{date,jdbcType=VARCHAR},
-    #{createTime,jdbcType=VARCHAR},
-    #{updateTime,jdbcType=VARCHAR}
+    #{roomId,jdbcType=BIGINT},
+    #{times,jdbcType=BIGINT},
+    #{checkDate,jdbcType=VARCHAR},
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
     )
   </insert>
 
@@ -89,16 +86,16 @@
     update
     <include refid="Base_Table" />
     <set >
-      <if test="times != null and times !='' " >
-        times = #{times},
+      <if test="times != null  " >
+        times = #{times}
       </if>
     </set>
     <where>
       <if test="roomId != null and roomId !='' ">
         and room_id = #{roomId}
       </if>
-      <if test="date != null and date !='' ">
-        and date = #{date}
+      <if test="checkDate != null and checkDate !='' ">
+        and check_date = #{checkDate}
       </if>
     </where>
   </update>

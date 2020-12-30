@@ -15,7 +15,7 @@ public class SMSTest {
 
     @Test
     public void sendSMS() {
-        ismsSendService.sendSMS("",new String[]{"301", "湿度超过阈值"});
+        ismsSendService.sendSMS("18678898329",new String[]{"301", "湿度超过阈值"});
 
     }
 

@@ -3,18 +3,20 @@
 <mapper namespace="com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper">
   <resultMap id="BaseResultMap" type="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO">
     <id column="id" jdbcType="BIGINT" property="id" />
-    <result column="room_id" jdbcType="VARCHAR" property="roomId" />
-    <result column="time_length" jdbcType="VARCHAR" property="timeLength" />
+    <result column="room_id" jdbcType="BIGINT" property="roomId" />
+    <result column="time_length" jdbcType="BIGINT" property="timeLength" />
+    <result column="earlier_time" jdbcType="VARCHAR" property="earlierTime" />
+    <result column="later_time" jdbcType="VARCHAR" property="laterTime" />
     <result column="date" jdbcType="VARCHAR" property="date" />
-    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
-    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, room_id ,time_length,date ,create_time,update_time
+    id, room_id ,time_length,earlier_time,later_time,date ,create_time,update_time
   </sql>
   <sql id="Add_Column_List">
-   room_id ,time_length,date ,create_time,update_time
+    room_id ,time_length,earlier_time,later_time,date ,create_time,update_time
   </sql>
   <sql id="Base_Table">
     room_used_time
@@ -28,9 +30,6 @@
     <include refid="Base_Table" />
 
   <where>
-    <if test="id != null">
-      and id =#{id}
-    </if>
 
     <if test="roomId != null">
       and room_id =#{roomId}
@@ -66,7 +65,7 @@
     limit 7
   </select>
 
-  <insert id="insertFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO">
+  <insert id="insertRoomUseTimeDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO">
     insert into
       <include refid="Base_Table" />
     (
@@ -74,20 +73,28 @@
     )
     values
     (
-    #{roomId,jdbcType=INTEGER},
-    #{timeLength,jdbcType=VARCHAR},
+    #{roomId,jdbcType=BIGINT},
+    #{timeLength,jdbcType=BIGINT},
+    #{earlierTime,jdbcType=VARCHAR},
+    #{laterTime,jdbcType=VARCHAR},
     #{date,jdbcType=VARCHAR},
-    #{createTime,jdbcType=VARCHAR},
-    #{updateTime,jdbcType=VARCHAR}
+    #{createTime,jdbcType=TIMESTAMP},
+    #{updateTime,jdbcType=TIMESTAMP}
     )
   </insert>
 
-  <update id="updateFrequenceInRoomDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO" >
+  <update id="updateRoomUseTimeDTO" parameterType="com.bang.ap.dp.analysis.dto.RoomUseTimeDTO" >
     update
     <include refid="Base_Table" />
     <set >
-      <if test="times != null and times !='' " >
+      <if test="timeLength != null and timeLength !='' " >
         time_length = #{timeLength},
+      </if>
+      <if test="earlierTime != null and earlierTime !='' " >
+        earlier_time = #{earlierTime},
+      </if>
+      <if test="laterTime != null and laterTime !='' " >
+        later_time = #{laterTime},
       </if>
     </set>
     <where>

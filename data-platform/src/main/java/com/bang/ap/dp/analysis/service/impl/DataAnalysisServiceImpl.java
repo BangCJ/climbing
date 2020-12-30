@@ -44,7 +44,7 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
     }
 
     @Override
-    public int getRooUserdRateInOneWeek(String id) {
+    public int getRooUserdRateInOneWeek(int id) {
         return 65;
     }
 
