@@ -12,5 +12,6 @@ import java.util.List;
 public class HighFrequenceResponseDTO {
     public List<HighFrequenceDTO> allData;
     public HighestFrequenceDTO highest;
+    public List<ImportantPeopleDTO> importantPeople;
 
 }

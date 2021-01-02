@@ -85,7 +85,7 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
         pictureUrlList.add("https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1606622684660&di=854355d14bde293558e05d92347d90bd&imgtype=0&src=http%3A%2F%2Fimg.alicdn.com%2Fimgextra%2Fi4%2F3083885855%2FTB2yfW_cFooBKNjSZPhXXc2CXXa_%2521%25213083885855.jpg_500x500q90.jpg");
         for (int i = 1; i <4 ; i++) {
             StrangerInfoDTO strangerInfoDTO=new StrangerInfoDTO();
-            strangerInfoDTO.setId(String.valueOf(i));
+            strangerInfoDTO.setId(i);
             strangerInfoDTO.setCode(String.valueOf(i));
             strangerInfoDTO.setName("陌生人"+i);
             strangerInfoDTO.setTimes(String.valueOf(i));

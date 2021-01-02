@@ -25,6 +25,8 @@ public class DPScheduleTask {
             dataPesistenceService.saveFrequenceInRoom(new Date());
             //do things about used time length info
             dataPesistenceService.saveRoomUseTimeLength(new Date());
+            //do things about stranger
+            dataPesistenceService.saveStrangerInfo(new Date());
 
        } catch (Exception e) {
             log.error(" error occured when data platform  tried to  do job ");

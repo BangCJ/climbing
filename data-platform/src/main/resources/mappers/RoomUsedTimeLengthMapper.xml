@@ -48,9 +48,6 @@
     <include refid="Base_Table" />
 
     <where>
-      <if test="id != null">
-        and id =#{id}
-      </if>
 
       <if test="roomId != null">
         and room_id =#{roomId}

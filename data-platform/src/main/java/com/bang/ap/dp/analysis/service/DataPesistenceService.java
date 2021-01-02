@@ -7,4 +7,7 @@ public interface DataPesistenceService {
     void saveFrequenceInRoom(Date date);
 
     void saveRoomUseTimeLength(Date date);
+
+    void saveStrangerInfo(Date date);
+
 }

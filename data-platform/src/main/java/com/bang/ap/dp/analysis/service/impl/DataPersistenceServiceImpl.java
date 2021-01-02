@@ -4,20 +4,26 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO;
 import com.bang.ap.dp.analysis.dto.RoomUseTimeDTO;
+import com.bang.ap.dp.analysis.dto.StrangerInfoDTO;
+import com.bang.ap.dp.analysis.dto.StrangerResponseDTO;
 import com.bang.ap.dp.analysis.service.DataPesistenceService;
 import com.bang.ap.dp.cons.DPConstant;
 import com.bang.ap.dp.cons.UrlConstant;
 import com.bang.ap.dp.utils.DPTimeUtil;
 import com.bang.ap.dp.utils.HikvisionUtil;
+import com.bang.ap.dp.utils.PictureUtil;
 import com.bang.ap.dp.web.mapper.FrequenceInRoomMapper;
 import com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper;
+import com.bang.ap.dp.web.mapper.StrangerInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -29,9 +35,13 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
     @Autowired
     FrequenceInRoomMapper frequenceInRoomMapper;
 
-
     @Autowired
     private RoomUsedTimeLengthMapper roomUsedTimeLengthMapper;
+
+    @Autowired
+    private StrangerInfoMapper strangerInfoMapper;
+
+
 
     @Override
     public void saveFrequenceInRoom(Date date) {
@@ -55,7 +65,6 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
                 total = (int) dataObject.get("total");
             }
 
-            log.info("按条件查询人脸抓拍事件，请求url={},请求参数为{},请求结果为{}", UrlConstant.URL_FACE_EVENT_NORMAL_, jsonObject.toJSONString(), result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -87,8 +96,8 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
     @Override
     public void saveRoomUseTimeLength(Date date) {
         //1、调用海康接口获取人脸抓拍事件，查询所有时间，获取数据的开始结束时间
-        // String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getYesterday()), DPConstant.DATE_FORMAT);
-        String startTime = "2020-11-26T17:30:08.000+08:00";
+        String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getYesterday()), DPConstant.DATE_FORMAT);
+       // String startTime = "2020-11-26T17:30:08.000+08:00";
         String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(date), DPConstant.DATE_FORMAT);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("pageSize", 1000);
@@ -130,7 +139,6 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
                 interval = DPTimeUtil.getInterval(firstTime, lastTIme);
             }
 
-            log.info("按条件查询人脸抓拍事件，请求url={},请求参数为{},请求结果为{}", UrlConstant.URL_FACE_EVENT_NORMAL_, jsonObject.toJSONString(), result);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -154,6 +162,109 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
             roomUsedTimeLengthMapper.updateRoomUseTimeDTO(roomUseTimeDTO);
         } else {
             roomUsedTimeLengthMapper.insertRoomUseTimeDTO(roomUseTimeDTO);
+        }
+
+
+    }
+
+    @Override
+    public void saveStrangerInfo(Date date) {
+        //调用海康接口"按条件查询陌生人事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+        String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-1)), DPConstant.DATE_FORMAT);
+        String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonArray.add("eca9e1993abe4488bacb875fd68e5935");
+        jsonObject.put("cameraIndexCodes", jsonArray);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        jsonObject.put("pageNo", 1);
+        jsonObject.put("pageSize", 1000);
+        List<StrangerInfoDTO>strangerInfoDTOList=new ArrayList<>();
+
+        try {
+            String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_STRANGE_, jsonObject);
+            JSONObject resultObject = JSONObject.parseObject(result);
+            if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
+                JSONObject dataObject = (JSONObject) resultObject.get("data");
+                JSONArray jsonArrayList = (JSONArray) dataObject.get("list");
+                if (jsonArrayList != null && jsonArrayList.size() > 0) {
+
+
+                    for (int i = 0; i < jsonArrayList.size(); i++) {
+                        StrangerInfoDTO strangerInfoDTO = new StrangerInfoDTO();
+                        strangerInfoDTO=jsonArrayList.getObject(i,StrangerInfoDTO.class);
+                        JSONObject pictureParam=new JSONObject();
+                        pictureParam.put("url",strangerInfoDTO.getBkgUrl());
+                        //处理图片地址
+                        String pactureDown=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,pictureParam);
+                        JSONObject pictureDownObject= JSONObject.parseObject(pactureDown);
+                        String data=pictureDownObject.get("data").toString();
+                        String bkgPictureName= UUID.randomUUID().toString()+".jpg";
+                        String bkgUrlBak="/data/data-platform/picture/"+bkgPictureName;
+                        PictureUtil.GenerateImage(data,bkgUrlBak);
+                        strangerInfoDTO.setBkgUrlBak(bkgUrlBak);
+                        strangerInfoDTO.setBkgUrlPictureNameBak(bkgPictureName);
+                        //strangerInfoDTO.setBkgData(data);
+
+
+                        JSONObject snapPictureParam=new JSONObject();
+                        snapPictureParam.put("url",strangerInfoDTO.getSnapUrl());
+                        //处理snap图片地址
+                        String snapPictureDown=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,snapPictureParam);
+                        String snapData= JSONObject.parseObject(snapPictureDown).get("data").toString();
+                        String snapPictureName=UUID.randomUUID().toString()+".jpg";
+                        String snapUrlBak="/data/data-platform/picture/"+bkgPictureName;
+                        PictureUtil.GenerateImage(snapData,snapUrlBak);
+                        strangerInfoDTO.setSnapUrlBak(snapUrlBak);
+                        strangerInfoDTO.setSnapUrlPictureNameBak(snapPictureName);
+
+                        //strangerInfoDTO.setSnapData(snapData);
+
+
+                        //处理以图搜图
+                        JSONObject facePicBinaryJSONObject=new JSONObject();
+                        facePicBinaryJSONObject.put("facePicBinaryData",snapData);
+                        facePicBinaryJSONObject.put("pageNo",1);
+                        facePicBinaryJSONObject.put("pageSize",20);
+                        facePicBinaryJSONObject.put("searchNum",50);
+                        facePicBinaryJSONObject.put("startTime",startTime);
+                        facePicBinaryJSONObject.put("endTime",endTime);
+                        facePicBinaryJSONObject.put("minSimilarity",50);
+                        facePicBinaryJSONObject.put("maxSimilarity",100);
+
+                        String  facePicBinaryResult=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_CAPTURESEARCH,facePicBinaryJSONObject);
+                        JSONObject facePicBinaryResultObject= JSONObject.parseObject(facePicBinaryResult);
+                        if (null != facePicBinaryResultObject.get("msg") && "success".equals(facePicBinaryResultObject.get("msg"))){
+                            int total=facePicBinaryResultObject.getJSONObject("data").getInteger("total");
+                            strangerInfoDTO.setTotalSimilar(total);
+                        }
+                        strangerInfoDTO.setDataTime(DPTimeUtil.formatDate(date,DPConstant.DATE_FORMAT_DATETYPE));
+
+                        strangerInfoDTO.setCreateTime(new Date());
+                        strangerInfoDTO.setUpdateTime(new Date());
+
+                        strangerInfoDTOList.add(strangerInfoDTO);
+
+                    }
+                }
+                //写库
+                if (strangerInfoDTOList.size()>0){
+                    StrangerInfoDTO strangerInfoParam=new StrangerInfoDTO();
+                    strangerInfoParam.setDataTime(DPTimeUtil.formatDate(date,DPConstant.DATE_FORMAT_DATETYPE));
+                    List<StrangerInfoDTO> checkList=strangerInfoMapper.getStrangerInfoDTO(strangerInfoParam);
+                    if (checkList!=null && checkList.size()>0){
+                        return ;
+                    }else{
+                        strangerInfoMapper.insertStrangerInfoDTOList(strangerInfoDTOList);
+                    }
+                }
+
+
+            }
+            log.info("保存strangerInfo 完成");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
         }
 
 

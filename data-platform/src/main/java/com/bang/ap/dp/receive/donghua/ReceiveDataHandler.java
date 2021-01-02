@@ -27,7 +27,7 @@ public class ReceiveDataHandler extends SimpleChannelInboundHandler<ByteBuf> {
         switch (funCode) {
             // 获取当前采样频率
             case 104:
-                System.out.println("当前采样频率：" + buf.readFloatLE());
+                //System.out.println("当前采样频率：" + buf.readFloatLE());
                 break;
             // 接收采样数据【时间序列数据】
             case 124:

@@ -12,5 +12,7 @@ public class HighFrequenceDTO {
     public String code;
     public String name;
     public String times;
+    public String picture;
+
 
 }

@@ -9,12 +9,14 @@ import java.util.Date;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class StrangerInfoDTO {
+public class ImportantPeopleDTO {
     public int id;
     public String code;
     public String name;
     public String times;
     public String picture;
+    public String picture2;
+
     public String dataTime;
 
     public String bkgUrl;

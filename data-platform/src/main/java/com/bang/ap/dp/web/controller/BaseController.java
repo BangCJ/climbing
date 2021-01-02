@@ -57,7 +57,9 @@ public class BaseController {
             //do things about frequence
             //dataPesistenceService.saveFrequenceInRoom(new Date());
             //do things about used time length info
-            dataPesistenceService.saveRoomUseTimeLength(new Date());
+            //dataPesistenceService.saveRoomUseTimeLength(new Date());
+            //do things about stranger
+            dataPesistenceService.saveStrangerInfo(new Date());
             return null;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

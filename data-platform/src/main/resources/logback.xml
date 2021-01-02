@@ -21,7 +21,7 @@
             </fileNamePattern>
         </rollingPolicy>
         <encoder>
-            <pattern>${COMMON_LOG_PATTERN}</pattern>
+            <pattern>${COMMON_LOG_PATTERN}</pattern>DataAnalysisServiceImpl.java
         </encoder>
     </appender>
 
@@ -33,7 +33,7 @@
     </logger>
 
 
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="rollingFile" />
         <appender-ref ref="console" />
     </root>

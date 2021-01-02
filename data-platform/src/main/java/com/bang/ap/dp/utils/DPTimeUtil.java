@@ -100,6 +100,27 @@ public class DPTimeUtil {
         return yesterday;
     }
 
+    public static Date get7DaysAgo() {
+        Date today = new Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(today);
+        c.add(Calendar.DAY_OF_MONTH, -7);
+        Date result = c.getTime();
+        return result;
+    }
+
+    public static Date getNDaysAgo(int num) {
+        if (num>0){
+            return null;
+        }
+        Date today = new Date();
+        Calendar c = Calendar.getInstance();
+        c.setTime(today);
+        c.add(Calendar.DAY_OF_MONTH, num);
+        Date result = c.getTime();
+        return result;
+    }
+
     public static String getYesterday(String pattern) {
         Date today = new Date();
         Calendar c = Calendar.getInstance();
