@@ -7,6 +7,7 @@
     <result column="name" jdbcType="VARCHAR" property="name" />
     <result column="status" jdbcType="VARCHAR" property="status" />
     <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="groupInfo" jdbcType="VARCHAR" property="groupInfo" />
     <result column="room_id" jdbcType="VARCHAR" property="roomId" />
     <result column="room_name" jdbcType="VARCHAR" property="roomName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
@@ -14,10 +15,10 @@
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, code ,name ,status,type,room_id,room_name,create_time,update_time
+    id, code ,name ,status,type,groupInfo,room_id,room_name,create_time,update_time
   </sql>
   <sql id="Add_Column_List">
-     code ,name ,status,type,room_id,room_name,create_time,update_time
+     code ,name ,status,type,groupInfo,room_id,room_name,create_time,update_time
   </sql>
   <sql id="Base_Table">
     terminal_info
@@ -34,6 +35,24 @@
     </if>
   </select>
 
+  <select id="getTerminalListByTypeAndGroup"  resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+    <where>
+      <if test="type!=null and type!='' ">
+        and type = #{type}
+      </if>
+      <if test="groupInfo!=null and groupInfo!='' ">
+        and groupInfo =#{groupInfo}
+      </if>
+
+    </where>
+  </select>
+
+
+
   <insert id="addTerminalInfo" parameterType="com.bang.ap.dp.web.entity.TerminalInfo">
     insert into
       <include refid="Base_Table" />
@@ -46,6 +65,7 @@
     #{name,jdbcType=VARCHAR},
     #{status,jdbcType=VARCHAR},
     #{type,jdbcType=VARCHAR},
+    #{groupInfo,jdbcType=VARCHAR},
     #{rootId,jdbcType=VARCHAR},
     #{roomName,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP},
@@ -68,6 +88,9 @@
       </if>
       <if test="type != null and type !='' " >
         type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="groupInfo != null and groupInfo !='' " >
+        type = #{groupInfo,jdbcType=VARCHAR},
       </if>
       <if test="updateTime != null" >
         updateTime = #{updateTime,jdbcType=TIMESTAMP}
@@ -97,6 +120,9 @@
       </if>
       <if test="searchMap.type!=null and searchMap.type!='' ">
         and type  = #{searchMap.type}
+      </if>
+      <if test="searchMap.groupInfo!=null and searchMap.groupInfo!='' ">
+        and groupInfo  = #{searchMap.groupInfo}
       </if>
 
     </where>

@@ -35,7 +35,7 @@ public class FaceController {
         jsonObject.put("startTime","2020-12-07T17:53:11.484+08:00");
         jsonObject.put("endTime","2020-12-07T17:30:08.000+08:00");
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_NORMAL_,jsonObject);
-        log.info("按条件查询人脸抓拍事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_NORMAL_,jsonObject.toJSONString(),request);
+        log.debug("按条件查询人脸抓拍事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_NORMAL_,jsonObject.toJSONString(),request);
         return result;
 
     }
@@ -62,7 +62,7 @@ public class FaceController {
         jsonObject.put("endTime",endTime);
 
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_,jsonObject);
-        log.info("按条件查询重点人员事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_IMPORTANT_,jsonObject.toJSONString(),request);
+        log.debug("按条件查询重点人员事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_IMPORTANT_,jsonObject.toJSONString(),request);
         return result;
     }
 
@@ -80,7 +80,7 @@ public class FaceController {
         jsonObject.put("startTime",startTime);
         jsonObject.put("endTime",endTime);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_STRANGE_,jsonObject);
-        log.info("按条件查询陌生人事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_STRANGE_,jsonObject.toJSONString(),request);
+        log.debug("按条件查询陌生人事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_STRANGE_,jsonObject.toJSONString(),request);
         return result;
     }
 
@@ -97,7 +97,7 @@ public class FaceController {
         jsonObject.put("startTime",startTime);
         jsonObject.put("endTime",endTime);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_HITHFREQUENCY_,jsonObject);
-        log.info("按条件查询陌生人事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_HITHFREQUENCY_,jsonObject.toJSONString(),request);
+        log.debug("按条件查询陌生人事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_FACE_EVENT_HITHFREQUENCY_,jsonObject.toJSONString(),request);
         return result;
     }
 
@@ -111,7 +111,7 @@ public class FaceController {
     @RequestMapping(path = "/eventCallback/importantPerson")
     @ResponseBody
     public String importantPersonCallback(@RequestBody JSONObject jsonObject) {
-        log.info("收到回调信息，重点人员识别事件。接受参数为:{}",jsonObject.toJSONString());
+        log.debug("收到回调信息，重点人员识别事件。接受参数为:{}",jsonObject.toJSONString());
         return "success";
     }
 
@@ -123,7 +123,7 @@ public class FaceController {
     @RequestMapping(path = "/eventCallback/normalPerson")
     @ResponseBody
     public String normalPersonCallback(@RequestBody JSONObject jsonObject) {
-        log.info("收到回调信息，人脸抓拍事件。接受参数为:{}",jsonObject.toJSONString());
+        log.debug("收到回调信息，人脸抓拍事件。接受参数为:{}",jsonObject.toJSONString());
         return "success";
     }
 
@@ -135,7 +135,7 @@ public class FaceController {
     @RequestMapping(path = "/enentCallback/stranger")
     @ResponseBody
     public String strangerCallback(@RequestBody JSONObject jsonObject) {
-        log.info("收到回调信息，陌生人识别事件。接受参数为:{}",jsonObject.toJSONString());
+        log.debug("收到回调信息，陌生人识别事件。接受参数为:{}",jsonObject.toJSONString());
         return "success";
     }
 

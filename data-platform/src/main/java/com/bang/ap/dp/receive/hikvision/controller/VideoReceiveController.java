@@ -25,7 +25,7 @@ public class VideoReceiveController {
         jsonObject.put("pageNo",1);
         jsonObject.put("pageSize",10);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_VIDEO_CAMERA_PAGE,jsonObject);
-        log.info(result);
+        log.debug(result);
         return result;
 
 
@@ -84,7 +84,7 @@ public class VideoReceiveController {
         jsonObject.put("pageNo",1);
         jsonObject.put("pageSize",10);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_VIDEO_ENCODEDEVICE,jsonObject);
-        log.info(result);
+        log.debug(result);
         return result;
 
 

@@ -72,5 +72,11 @@ public class UrlConstant {
     public static final String URL_FACE_PICTURE_CAPTURESEARCH="/api/frs/v1/application/captureSearch";
 
 
+    /**
+     * 分页查询动环环境量
+     */
+    public static final String URL_SENSOR_VALUE="/api/pems/v1/sensor/search";
+
+
 
 }

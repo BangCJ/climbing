@@ -12,6 +12,8 @@ public interface TerminalMapper {
 
     TerminalInfo selectById(int id);
 
+    List<TerminalInfo> getTerminalListByTypeAndGroup(@Param("type") String type, @Param("groupInfo") String groupInfo);
+
     void addTerminalInfo(TerminalInfo terminalInfo);
 
     void updateTerminalInfo(TerminalInfo terminalInfo);

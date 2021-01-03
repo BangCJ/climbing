@@ -93,6 +93,8 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
         Set<String> nameSet = new HashSet<>();
         Map<String, String> nameAndFaceUrl = new HashMap<>();
+        nameAndFaceUrl.put("徐剑坤",picturl+"standard/xujiankun.png");
+        nameAndFaceUrl.put("覃奔",picturl+"standard/qinben.png");
         Map<String, Integer> nameAndTimes = new HashMap<>();
         List<ImportantPeopleDTO>importantPeopleDTOList=new ArrayList<>();
         try {
@@ -109,7 +111,10 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                         String name = (String) targetInfo.get("name");
                         String faceUrl = (String) targetInfo.get("faceUrl");
                         nameSet.add(name);
-                        nameAndFaceUrl.put(name, faceUrl);
+                        if (null==nameAndFaceUrl.get(name)){
+                            nameAndFaceUrl.put(name,faceUrl);
+                        }
+
                         if (nameAndTimes.get(name) == null) {
                             nameAndTimes.put(name, 1);
                         } else {
@@ -195,6 +200,15 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
             String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + bkgPictureName;
             PictureUtil.GenerateImage(data, bkgUrlBak);
             strangerInfoDTOList.get(i).setPicture(picturl +"stranger/"+ bkgPictureName);
+
+
+            String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
+            String backPictureName = strangerInfoDTOList.get(i).getBkgUrlPictureNameBak();
+            String backUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + backPictureName;
+            PictureUtil.GenerateImage(backData, backUrlBak);
+            strangerInfoDTOList.get(i).setBkgUrl(picturl +"stranger/"+ backPictureName);
+
+            
             //times
             strangerInfoDTOList.get(i).setTimes(strangerInfoDTOList.get(i).getTotalSimilar() + "");
             strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(),DPConstant.DATE_FORMAT));

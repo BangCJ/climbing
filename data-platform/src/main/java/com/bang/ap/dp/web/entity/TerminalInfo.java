@@ -34,6 +34,10 @@ public class TerminalInfo implements Serializable {
      */
     private String type;
     /**
+     * 所属分组
+     */
+    private String groupInfo;
+    /**
      * 所属房间id
      */
     private String roomId;
