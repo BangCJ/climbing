@@ -30,7 +30,7 @@ public class MonitorData  implements Serializable {
     /**
      * 数据产生时间
      */
-    private String originDateTime;
+    private String originDataTime;
 
     /**
      * 创建时间

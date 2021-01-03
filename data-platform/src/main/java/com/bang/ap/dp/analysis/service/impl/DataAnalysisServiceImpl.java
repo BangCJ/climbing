@@ -11,10 +11,10 @@ import com.bang.ap.dp.utils.HikvisionUtil;
 import com.bang.ap.dp.utils.PictureUtil;
 import com.bang.ap.dp.web.entity.MonitorData;
 import com.bang.ap.dp.web.mapper.FrequenceInRoomMapper;
+import com.bang.ap.dp.web.mapper.MonitorDataMapper;
 import com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper;
 import com.bang.ap.dp.web.mapper.StrangerInfoMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.joda.time.field.ImpreciseDateTimeField;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -35,6 +35,9 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
     @Autowired
     private StrangerInfoMapper strangerInfoMapper;
+
+    @Autowired
+    private MonitorDataMapper monitorDataMapper;
 
     @Autowired
     HikvisionUtil hikvisionUtil;
@@ -93,10 +96,10 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
         Set<String> nameSet = new HashSet<>();
         Map<String, String> nameAndFaceUrl = new HashMap<>();
-        nameAndFaceUrl.put("徐剑坤",picturl+"standard/xujiankun.png");
-        nameAndFaceUrl.put("覃奔",picturl+"standard/qinben.png");
+        nameAndFaceUrl.put("徐剑坤", picturl + "standard/xujiankun.png");
+        nameAndFaceUrl.put("覃奔", picturl + "standard/qinben.png");
         Map<String, Integer> nameAndTimes = new HashMap<>();
-        List<ImportantPeopleDTO>importantPeopleDTOList=new ArrayList<>();
+        List<ImportantPeopleDTO> importantPeopleDTOList = new ArrayList<>();
         try {
             String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_, jsonObject);
             JSONObject resultObject = JSONObject.parseObject(result);
@@ -111,8 +114,8 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                         String name = (String) targetInfo.get("name");
                         String faceUrl = (String) targetInfo.get("faceUrl");
                         nameSet.add(name);
-                        if (null==nameAndFaceUrl.get(name)){
-                            nameAndFaceUrl.put(name,faceUrl);
+                        if (null == nameAndFaceUrl.get(name)) {
+                            nameAndFaceUrl.put(name, faceUrl);
                         }
 
                         if (nameAndTimes.get(name) == null) {
@@ -122,20 +125,20 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                         }
 
                         JSONObject snapObject = jsonArrayList.getJSONObject(i).getJSONObject("snapInfo");
-                        JSONObject pictureParam=new JSONObject();
-                        pictureParam.put("url",snapObject.getString("snapUrl"));
+                        JSONObject pictureParam = new JSONObject();
+                        pictureParam.put("url", snapObject.getString("snapUrl"));
 
                         //处理重点人员列表信息
-                        String pactureDown=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,pictureParam);
-                        JSONObject pictureDownObject= JSONObject.parseObject(pactureDown);
-                        String data=pictureDownObject.get("data").toString();
-                        String bkgPictureName= UUID.randomUUID().toString()+".jpg";
+                        String pactureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, pictureParam);
+                        JSONObject pictureDownObject = JSONObject.parseObject(pactureDown);
+                        String data = pictureDownObject.get("data").toString();
+                        String bkgPictureName = UUID.randomUUID().toString() + ".jpg";
                         String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/important/" + bkgPictureName;
-                        if (PictureUtil.GenerateImage(data,bkgUrlBak)){
-                            ImportantPeopleDTO importantPeopleDTO=new ImportantPeopleDTO();
-                            importantPeopleDTO.setPicture(picturl+"important/"+bkgPictureName);
+                        if (PictureUtil.GenerateImage(data, bkgUrlBak)) {
+                            ImportantPeopleDTO importantPeopleDTO = new ImportantPeopleDTO();
+                            importantPeopleDTO.setPicture(picturl + "important/" + bkgPictureName);
                             importantPeopleDTO.setCameraName(snapObject.getString("cameraName"));
-                            importantPeopleDTO.setEventTime(DPTimeUtil.isoStr2utc8Str(snapObject.getString("eventTime"),DPConstant.DATE_FORMAT));
+                            importantPeopleDTO.setEventTime(DPTimeUtil.isoStr2utc8Str(snapObject.getString("eventTime"), DPConstant.DATE_FORMAT));
                             importantPeopleDTO.setName(name);
                             importantPeopleDTO.setPicture2(nameAndFaceUrl.get(name));
                             importantPeopleDTOList.add(importantPeopleDTO);
@@ -150,8 +153,6 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-
-
 
 
         //处理高频人员信息
@@ -199,19 +200,19 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
             String bkgPictureName = strangerInfoDTOList.get(i).getSnapUrlPictureNameBak();
             String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + bkgPictureName;
             PictureUtil.GenerateImage(data, bkgUrlBak);
-            strangerInfoDTOList.get(i).setPicture(picturl +"stranger/"+ bkgPictureName);
+            strangerInfoDTOList.get(i).setPicture(picturl + "stranger/" + bkgPictureName);
 
 
             String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
             String backPictureName = strangerInfoDTOList.get(i).getBkgUrlPictureNameBak();
             String backUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + backPictureName;
             PictureUtil.GenerateImage(backData, backUrlBak);
-            strangerInfoDTOList.get(i).setBkgUrl(picturl +"stranger/"+ backPictureName);
+            strangerInfoDTOList.get(i).setBkgUrl(picturl + "stranger/" + backPictureName);
 
-            
+
             //times
             strangerInfoDTOList.get(i).setTimes(strangerInfoDTOList.get(i).getTotalSimilar() + "");
-            strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(),DPConstant.DATE_FORMAT));
+            strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(), DPConstant.DATE_FORMAT));
 
         }
         StrangerResponseDTO strangerResponseDTO = new StrangerResponseDTO();
@@ -348,26 +349,26 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
     @Override
     public List<MonitorData> getMonitorData() {
         List<MonitorData> monitorDataList = new ArrayList<>();
-        MonitorData monitorData = new MonitorData();
-        MonitorData monitorData2 = new MonitorData();
-        monitorData.setId(1);
-        monitorData.setCode("CO");
-        monitorData.setName("一氧化碳");
-        monitorData.setUnit("");
-        monitorData.setValue("0.4");
-        monitorData.setMonitorType("");
-        monitorData.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
-
-        monitorData2.setId(2);
-        monitorData2.setCode("temp");
-        monitorData2.setName("温度");
-        monitorData2.setUnit("摄氏度");
-        monitorData2.setValue("11");
-        monitorData2.setMonitorType("");
-        monitorData2.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
-
-        monitorDataList.add(monitorData);
-        monitorDataList.add(monitorData2);
+        List<String> monitorTypeList = new ArrayList<String>() {
+            {
+                add("gas");
+                add("humidity");
+                add("temp");
+                add("wind");
+                add("voicePress");
+                add("wave");
+            }
+        };
+        try {
+            for (int i = 0; i < monitorTypeList.size(); i++) {
+                List<MonitorData> monitorData = monitorDataMapper.getLastMonitorDataByType(monitorTypeList.get(i));
+                if (null != monitorData && monitorData.size()>0) {
+                    monitorDataList.add(monitorData.get(0));
+                }
+            }
+        } catch (Exception e) {
+            log.error("查询监控数据时异常", e);
+        }
         return monitorDataList;
     }
 
@@ -380,7 +381,7 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         monitorData.setName("一氧化碳");
         monitorData.setUnit("");
         monitorData.setMonitorType("");
-        monitorData.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
+        monitorData.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
         return monitorData;
     }
 }

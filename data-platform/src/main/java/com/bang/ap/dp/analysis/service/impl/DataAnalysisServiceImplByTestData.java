@@ -209,7 +209,7 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
         monitorData.setUnit("");
         monitorData.setValue("0.4");
         monitorData.setMonitorType("");
-        monitorData.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
+        monitorData.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
 
         monitorData2.setId(2);
         monitorData2.setCode("temp");
@@ -217,7 +217,7 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
         monitorData2.setUnit("摄氏度");
         monitorData2.setValue("11");
         monitorData2.setMonitorType("");
-        monitorData2.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
+        monitorData2.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
 
         monitorDataList.add(monitorData);
         monitorDataList.add(monitorData2);
@@ -233,7 +233,7 @@ public class DataAnalysisServiceImplByTestData implements DataAnalysisService {
         monitorData.setName("一氧化碳");
         monitorData.setUnit("");
         monitorData.setMonitorType("");
-        monitorData.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
+        monitorData.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
         return monitorData;
     }
 }

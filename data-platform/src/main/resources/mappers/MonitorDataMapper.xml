@@ -8,7 +8,7 @@
     <result column="monitor_type" jdbcType="VARCHAR" property="monitorType" />
     <result column="unit" jdbcType="VARCHAR" property="unit" />
     <result column="value" jdbcType="VARCHAR" property="value" />
-    <result column="origin_data_time" jdbcType="VARCHAR" property="originDateTime" />
+    <result column="origin_data_time" jdbcType="VARCHAR" property="originDataTime" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
@@ -32,6 +32,20 @@
     <if test="userId != null">
       where id =#{id}
     </if>
+  </select>
+
+  <select id="getLastMonitorDataByType" parameterType="String" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="monitorType != null and monitorType !='' ">
+        and monitor_type = #{monitorType}
+      </if>
+    </where>
+    order by origin_data_time desc
+    limit 1
   </select>
 
   <select id="getMonitorDataByParam" parameterType="com.bang.ap.dp.web.entity.MonitorData" resultMap="BaseResultMap">
@@ -65,7 +79,7 @@
     #{monitorType,jdbcType=VARCHAR},
     #{unit,jdbcType=VARCHAR},
     #{value,jdbcType=VARCHAR},
-    #{originDateTime,jdbcType=VARCHAR},
+    #{originDataTime,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}
     )

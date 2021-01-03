@@ -29,7 +29,7 @@ public class TestOthers {
             monitorData.setMonitorType("所属大分类，实时数据应该用不着");
             monitorData.setUnit("单位");
             monitorData.setValue("数值"+i);
-            monitorData.setOriginDateTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
+            monitorData.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
             finalJSONarray.add(monitorData);
 
         }

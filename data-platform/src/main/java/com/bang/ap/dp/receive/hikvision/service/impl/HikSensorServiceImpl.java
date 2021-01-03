@@ -55,7 +55,7 @@ public class HikSensorServiceImpl implements HikSensorService {
                         MonitorData monitorData=new MonitorData();
                         monitorData.setMonitorType(dataObject.getString("sensorType"));
                         monitorData.setValue(dataObject.getString("latestValue"));
-                        monitorData.setOriginDateTime(dataObject.getString("latestTime"));
+                        monitorData.setOriginDataTime(dataObject.getString("latestTime"));
                         monitorData.setUnit(dataObject.getString("unit"));
                         monitorData.setName(dataObject.getString("name"));
                         monitorData.setCode(dataObject.getString("indexCode"));
