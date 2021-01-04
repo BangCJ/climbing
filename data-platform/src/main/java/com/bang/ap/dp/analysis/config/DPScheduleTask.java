@@ -23,7 +23,7 @@ public class DPScheduleTask {
 
     @Scheduled(cron = "0 15 0 ? * *")
     public void checkInfoAboutRoom() {
-        log.info("data  platform  start to  do job ： checkInfoAboutRoom() ");
+        log.info("data  platform  start to  do job ： checkInfoAboutRoom() !!!!!!!!!!");
         try {
             //do things about frequence
             dataPesistenceService.saveFrequenceInRoom(new Date());

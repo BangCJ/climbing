@@ -6,7 +6,7 @@
     <property name="logging.path" value="/data/logs/app"/>
     <property name="application.name" value="data-platform"/>
     <property name="domain.name" value="dp"/>
-    <property name="COMMON_LOG_PATTERN" value="%date{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] [%logger{36}] [%X{traceId}] [%X{spanId}] [%X{pSpanId}] [%X{rpcOccurrence}] [%X{code}] [%X{req.requestURL}] [%X{req.queryString}] [${domain.name},${application.name},%X{sysId},%X{tenantId},%X{userId},%X{profile},%X{agentId}] - %msg %ex%n" />
+    <property name="COMMON_LOG_PATTERN" value="%date{yyyy-MM-dd HH:mm:ss.SSS,CTT} %-5level [%thread] [%logger{36}] [%X{traceId}] [%X{spanId}] [%X{pSpanId}] [%X{rpcOccurrence}] [%X{code}] [%X{req.requestURL}] [%X{req.queryString}] [${domain.name},${application.name},%X{sysId},%X{tenantId},%X{userId},%X{profile},%X{agentId}] - %msg %ex%n" />
 
     <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -31,6 +31,11 @@
         <appender-ref ref="rollingFile" />
         <appender-ref ref="console" />
     </logger>
+    <logger name="com.hikvision.artemis" level="WARN" additivity="false">
+        <appender-ref ref="rollingFile" />
+        <appender-ref ref="console" />
+    </logger>
+
 
 
     <root level="info">

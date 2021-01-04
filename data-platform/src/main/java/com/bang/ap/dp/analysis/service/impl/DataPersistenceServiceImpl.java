@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO;
 import com.bang.ap.dp.analysis.dto.RoomUseTimeDTO;
 import com.bang.ap.dp.analysis.dto.StrangerInfoDTO;
-import com.bang.ap.dp.analysis.dto.StrangerResponseDTO;
 import com.bang.ap.dp.analysis.service.DataPesistenceService;
 import com.bang.ap.dp.cons.DPConstant;
 import com.bang.ap.dp.cons.UrlConstant;
@@ -42,9 +41,9 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
     private StrangerInfoMapper strangerInfoMapper;
 
 
-
     @Override
     public void saveFrequenceInRoom(Date date) {
+        log.info("schedule1: start to saveFrequenceInRoom !");
         //1、调用海康接口获取，获取人脸抓拍事件，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"，
         String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getYesterday()), DPConstant.DATE_FORMAT);
         String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(date), DPConstant.DATE_FORMAT);
@@ -63,6 +62,8 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
             if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
                 JSONObject dataObject = (JSONObject) resultObject.get("data");
                 total = (int) dataObject.get("total");
+            } else {
+                log.error("saveFrequenceInRoom中，按条件查询人脸抓拍事件");
             }
 
         } catch (Exception e) {
@@ -83,8 +84,10 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
             List<FrequenceInRoomDTO> repeatCheck = frequenceInRoomMapper.getFrequenceInRoomDTO(param);
             if (null != repeatCheck && repeatCheck.size() > 0) {
                 frequenceInRoomMapper.updateFrequenceInRoomDTO(frequenceInRoomDTO);
+                log.info("saveFrequenceInRoom,当前存在当天{}数据，做更新操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
             } else {
                 frequenceInRoomMapper.insertFrequenceInRoomDTO(frequenceInRoomDTO);
+                log.info("saveFrequenceInRoom,当前不存在当天{}数据，做新增操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -95,9 +98,10 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
     @Override
     public void saveRoomUseTimeLength(Date date) {
+        log.info("schedule2: start to saveRoomUseTimeLength !");
         //1、调用海康接口获取人脸抓拍事件，查询所有时间，获取数据的开始结束时间
         String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getYesterday()), DPConstant.DATE_FORMAT);
-       // String startTime = "2020-11-26T17:30:08.000+08:00";
+        // String startTime = "2020-11-26T17:30:08.000+08:00";
         String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(date), DPConstant.DATE_FORMAT);
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("pageSize", 1000);
@@ -135,8 +139,11 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
                         }
 
                     }
+                    interval = DPTimeUtil.getInterval(firstTime, lastTIme);
                 }
-                interval = DPTimeUtil.getInterval(firstTime, lastTIme);
+
+            } else {
+                log.error("saveRoomUseTimeLength,按条件查询人脸抓拍事件查询失败");
             }
 
         } catch (Exception e) {
@@ -152,16 +159,28 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         roomUseTimeDTO.setDate(DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
         roomUseTimeDTO.setCreateTime(new Date());
         roomUseTimeDTO.setUpdateTime(new Date());
-        roomUseTimeDTO.setEarlierTime(DPTimeUtil.isoStr2utc8Str(firstTime, DPConstant.DATE_FORMAT));
-        roomUseTimeDTO.setLaterTime(DPTimeUtil.isoStr2utc8Str(lastTIme, DPConstant.DATE_FORMAT));
+        if (firstTime != null) {
+            roomUseTimeDTO.setEarlierTime(DPTimeUtil.isoStr2utc8Str(firstTime, DPConstant.DATE_FORMAT));
+        } else {
+            roomUseTimeDTO.setEarlierTime(DPTimeUtil.formatDate(DPTimeUtil.getBeginTimeOfDay(DPTimeUtil.getYesterday())));
+        }
+        if (lastTIme != null) {
+            roomUseTimeDTO.setLaterTime(DPTimeUtil.isoStr2utc8Str(lastTIme, DPConstant.DATE_FORMAT));
+        } else {
+            roomUseTimeDTO.setLaterTime(DPTimeUtil.formatDate(DPTimeUtil.getBeginTimeOfDay(DPTimeUtil.getYesterday())));
+        }
         RoomUseTimeDTO param = new RoomUseTimeDTO();
         param.setRoomId(roomId);
         param.setDate(DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
         List<RoomUseTimeDTO> repeatDataCheck = roomUsedTimeLengthMapper.getRoomUseTimeDTO(param);
         if (null != repeatDataCheck && repeatDataCheck.size() > 0) {
             roomUsedTimeLengthMapper.updateRoomUseTimeDTO(roomUseTimeDTO);
+            log.info("saveRoomUseTimeLength,当前存在当天{}数据，做更新操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+
         } else {
             roomUsedTimeLengthMapper.insertRoomUseTimeDTO(roomUseTimeDTO);
+            log.info("saveRoomUseTimeLength,当前不存在当天{}数据，做新增操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+
         }
 
 
@@ -169,6 +188,8 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
     @Override
     public void saveStrangerInfo(Date date) {
+        log.info("schedule3: start to saveStrangerInfo !");
+
         //调用海康接口"按条件查询陌生人事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
         String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-1)), DPConstant.DATE_FORMAT);
         String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
@@ -180,7 +201,7 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         jsonObject.put("endTime", endTime);
         jsonObject.put("pageNo", 1);
         jsonObject.put("pageSize", 1000);
-        List<StrangerInfoDTO>strangerInfoDTOList=new ArrayList<>();
+        List<StrangerInfoDTO> strangerInfoDTOList = new ArrayList<>();
 
         try {
             String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_STRANGE_, jsonObject);
@@ -193,29 +214,29 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
                     for (int i = 0; i < jsonArrayList.size(); i++) {
                         StrangerInfoDTO strangerInfoDTO = new StrangerInfoDTO();
-                        strangerInfoDTO=jsonArrayList.getObject(i,StrangerInfoDTO.class);
-                        JSONObject pictureParam=new JSONObject();
-                        pictureParam.put("url",strangerInfoDTO.getBkgUrl());
+                        strangerInfoDTO = jsonArrayList.getObject(i, StrangerInfoDTO.class);
+                        JSONObject pictureParam = new JSONObject();
+                        pictureParam.put("url", strangerInfoDTO.getBkgUrl());
                         //处理图片地址
-                        String pactureDown=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,pictureParam);
-                        JSONObject pictureDownObject= JSONObject.parseObject(pactureDown);
-                        String data=pictureDownObject.get("data").toString();
-                        String bkgPictureName= UUID.randomUUID().toString()+".jpg";
-                        String bkgUrlBak="/data/data-platform/picture/"+bkgPictureName;
-                        PictureUtil.GenerateImage(data,bkgUrlBak);
+                        String pactureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, pictureParam);
+                        JSONObject pictureDownObject = JSONObject.parseObject(pactureDown);
+                        String data = pictureDownObject.get("data").toString();
+                        String bkgPictureName = UUID.randomUUID().toString() + ".jpg";
+                        String bkgUrlBak = "/data/data-platform/picture/" + bkgPictureName;
+                        PictureUtil.GenerateImage(data, bkgUrlBak);
                         strangerInfoDTO.setBkgUrlBak(bkgUrlBak);
                         strangerInfoDTO.setBkgUrlPictureNameBak(bkgPictureName);
                         //strangerInfoDTO.setBkgData(data);
 
 
-                        JSONObject snapPictureParam=new JSONObject();
-                        snapPictureParam.put("url",strangerInfoDTO.getSnapUrl());
+                        JSONObject snapPictureParam = new JSONObject();
+                        snapPictureParam.put("url", strangerInfoDTO.getSnapUrl());
                         //处理snap图片地址
-                        String snapPictureDown=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_,snapPictureParam);
-                        String snapData= JSONObject.parseObject(snapPictureDown).get("data").toString();
-                        String snapPictureName=UUID.randomUUID().toString()+".jpg";
-                        String snapUrlBak="/data/data-platform/picture/"+bkgPictureName;
-                        PictureUtil.GenerateImage(snapData,snapUrlBak);
+                        String snapPictureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, snapPictureParam);
+                        String snapData = JSONObject.parseObject(snapPictureDown).get("data").toString();
+                        String snapPictureName = UUID.randomUUID().toString() + ".jpg";
+                        String snapUrlBak = "/data/data-platform/picture/" + bkgPictureName;
+                        PictureUtil.GenerateImage(snapData, snapUrlBak);
                         strangerInfoDTO.setSnapUrlBak(snapUrlBak);
                         strangerInfoDTO.setSnapUrlPictureNameBak(snapPictureName);
 
@@ -223,23 +244,23 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
 
                         //处理以图搜图
-                        JSONObject facePicBinaryJSONObject=new JSONObject();
-                        facePicBinaryJSONObject.put("facePicBinaryData",snapData);
-                        facePicBinaryJSONObject.put("pageNo",1);
-                        facePicBinaryJSONObject.put("pageSize",20);
-                        facePicBinaryJSONObject.put("searchNum",50);
-                        facePicBinaryJSONObject.put("startTime",startTime);
-                        facePicBinaryJSONObject.put("endTime",endTime);
-                        facePicBinaryJSONObject.put("minSimilarity",50);
-                        facePicBinaryJSONObject.put("maxSimilarity",100);
+                        JSONObject facePicBinaryJSONObject = new JSONObject();
+                        facePicBinaryJSONObject.put("facePicBinaryData", snapData);
+                        facePicBinaryJSONObject.put("pageNo", 1);
+                        facePicBinaryJSONObject.put("pageSize", 20);
+                        facePicBinaryJSONObject.put("searchNum", 50);
+                        facePicBinaryJSONObject.put("startTime", startTime);
+                        facePicBinaryJSONObject.put("endTime", endTime);
+                        facePicBinaryJSONObject.put("minSimilarity", 50);
+                        facePicBinaryJSONObject.put("maxSimilarity", 100);
 
-                        String  facePicBinaryResult=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_CAPTURESEARCH,facePicBinaryJSONObject);
-                        JSONObject facePicBinaryResultObject= JSONObject.parseObject(facePicBinaryResult);
-                        if (null != facePicBinaryResultObject.get("msg") && "success".equals(facePicBinaryResultObject.get("msg"))){
-                            int total=facePicBinaryResultObject.getJSONObject("data").getInteger("total");
+                        String facePicBinaryResult = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_CAPTURESEARCH, facePicBinaryJSONObject);
+                        JSONObject facePicBinaryResultObject = JSONObject.parseObject(facePicBinaryResult);
+                        if (null != facePicBinaryResultObject.get("msg") && "success".equals(facePicBinaryResultObject.get("msg"))) {
+                            int total = facePicBinaryResultObject.getJSONObject("data").getInteger("total");
                             strangerInfoDTO.setTotalSimilar(total);
                         }
-                        strangerInfoDTO.setDataTime(DPTimeUtil.formatDate(date,DPConstant.DATE_FORMAT_DATETYPE));
+                        strangerInfoDTO.setDataTime(DPTimeUtil.formatDate(date, DPConstant.DATE_FORMAT_DATETYPE));
 
                         strangerInfoDTO.setCreateTime(new Date());
                         strangerInfoDTO.setUpdateTime(new Date());
@@ -249,20 +270,21 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
                     }
                 }
                 //写库
-                if (strangerInfoDTOList.size()>0){
-                    StrangerInfoDTO strangerInfoParam=new StrangerInfoDTO();
-                    strangerInfoParam.setDataTime(DPTimeUtil.formatDate(date,DPConstant.DATE_FORMAT_DATETYPE));
-                    List<StrangerInfoDTO> checkList=strangerInfoMapper.getStrangerInfoDTO(strangerInfoParam);
-                    if (checkList!=null && checkList.size()>0){
-                        return ;
-                    }else{
+                if (strangerInfoDTOList.size() > 0) {
+                    StrangerInfoDTO strangerInfoParam = new StrangerInfoDTO();
+                    strangerInfoParam.setDataTime(DPTimeUtil.formatDate(DPTimeUtil.getYesterday(), DPConstant.DATE_FORMAT_DATETYPE));
+                    List<StrangerInfoDTO> checkList = strangerInfoMapper.getStrangerInfoDTO(strangerInfoParam);
+                    if (checkList != null && checkList.size() > 0) {
+                        log.info("saveStrangerInfo:持久化时，数据库存在当天{}数据,不做其他操作",DPTimeUtil.getYesterday().toString());
+                        return;
+                    } else {
                         strangerInfoMapper.insertStrangerInfoDTOList(strangerInfoDTOList);
+                        log.info("saveStrangerInfo:持久化时，数据库不存在当天{}数据,做新增操作",DPTimeUtil.getYesterday().toString());
                     }
+                }else{
+                    log.info("saveStrangerInfo:持久化时，从Hil获取当天{}数据为空,不做其他操作",DPTimeUtil.getYesterday().toString());
                 }
-
-
             }
-            log.info("保存strangerInfo 完成");
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }

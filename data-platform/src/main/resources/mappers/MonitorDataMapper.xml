@@ -44,7 +44,7 @@
         and monitor_type = #{monitorType}
       </if>
     </where>
-    order by origin_data_time desc
+    order by create_time desc
     limit 1
   </select>
 

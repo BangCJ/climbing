@@ -206,5 +206,20 @@ public class DPTimeUtil {
 
     }
 
+    /**
+     * 获取一天的开始时间
+     * @param date 某一天时间
+     * @return 某一天的开始时间,比如2005-01-01 00:00:00.000
+     */
+    public static Date getBeginTimeOfDay(Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
+    }
+
 
 }
