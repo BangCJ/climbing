@@ -128,4 +128,21 @@
     </where>
   </select>
 
+
+  <select id="getTerminalLAmountByTypeAndStatus"   resultType="int">
+    select
+    count(*)
+    from
+    <include refid="Base_Table" />
+    <where>
+      <if test="type!=null and type!='' ">
+        and type = #{type}
+      </if>
+      <if test="status!=null and status!='' ">
+        and status =#{status}
+      </if>
+
+    </where>
+  </select>
+
 </mapper>

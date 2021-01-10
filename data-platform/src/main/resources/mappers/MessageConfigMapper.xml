@@ -6,16 +6,17 @@
     <result column="email_enable" jdbcType="BOOLEAN" property="emailEnable" />
     <result column="sms_enable" jdbcType="BOOLEAN" property="smsEnable" />
     <result column="voice_enable" jdbcType="BOOLEAN" property="voiceEnable" />
-    <result column="receiver_string" jdbcType="VARCHAR" property="receiverString" />
+    <result column="receiver_id" jdbcType="VARCHAR" property="receiverId" />
+    <result column="receiver_name" jdbcType="VARCHAR" property="receiverName" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, email_enable ,sms_enable ,voice_enable,receiver_string,create_time,update_time
+    id, email_enable ,sms_enable ,voice_enable,receiver_id,receiver_name,create_time,update_time
   </sql>
   <sql id="Add_Column_List">
-     email_enable ,sms_enable ,voice_enable,receiver_string,create_time,update_time
+     email_enable ,sms_enable ,voice_enable,receiver_id,receiver_name,create_time,update_time
   </sql>
   <sql id="Base_Table">
     message_config
@@ -42,7 +43,8 @@
     #{emailEnable,jdbcType=BOOLEAN},
     #{smsEnable,jdbcType=BOOLEAN},
     #{voiceEnable,jdbcType=BOOLEAN},
-    #{receiverString,jdbcType=VARCHAR},
+    #{receiverId,jdbcType=VARCHAR},
+    #{receiverName,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}
     )
@@ -68,6 +70,18 @@
       </if>
     </set>
     where id = #{id}
+  </update>
+
+  <update id="deleteMessageReceiveConfigById" parameterType="int" >
+    delete from
+    <include refid="Base_Table" />
+    where id = #{id}
+  </update>
+
+  <update id="deleteMessageReceiveConfigByUserId" parameterType="String" >
+    delete from
+    <include refid="Base_Table" />
+    where receiver_id = #{userId}
   </update>
 
 

@@ -74,4 +74,55 @@
     </where>
   </select>
 
+  <select id="getLastWarningData"  resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+
+    order by create_time desc
+    limit 7
+  </select>
+
+  <select id="selectByDate" parameterType="String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="warningTime != null">
+      where warning_time =#{warningTime}
+    </if>
+  </select>
+
+  <select id="selectAmountByDate" parameterType="String" resultType="int">
+    select
+    count(*)
+    from
+    <include refid="Base_Table" />
+
+    <if test="warningTime != null">
+      where warning_time =#{warningTime}
+    </if>
+  </select>
+
+  <select id="selectAmountByType" parameterType="String" resultType="int">
+    select
+    count(*)
+    from
+    <include refid="Base_Table" />
+
+    <if test="warningType != null">
+      where warning_type =#{warningType}
+    </if>
+  </select>
+
+  <select id="selectAllAmount" parameterType="String" resultType="int">
+    select
+    count(*)
+    from
+    <include refid="Base_Table" />
+
+  </select>
+
 </mapper>

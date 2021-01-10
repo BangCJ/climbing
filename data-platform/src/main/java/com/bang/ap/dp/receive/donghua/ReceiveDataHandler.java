@@ -4,6 +4,7 @@ import com.bang.ap.dp.cons.DPConstant;
 import com.bang.ap.dp.utils.DPTimeUtil;
 import com.bang.ap.dp.web.entity.MonitorData;
 import com.bang.ap.dp.web.service.MonitorDataService;
+import com.bang.ap.dp.web.service.WarningService;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -25,6 +26,9 @@ public class ReceiveDataHandler extends SimpleChannelInboundHandler<ByteBuf> {
 
     @Autowired
     MonitorDataService monitorDataService;
+
+    @Autowired
+    private WarningService warningService;
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, ByteBuf buf) throws Exception {
@@ -108,6 +112,12 @@ public class ReceiveDataHandler extends SimpleChannelInboundHandler<ByteBuf> {
         waveMonitor.setCreateTime(new Date());
         waveMonitor.setUpdateTime(new Date());
         monitorDataService.addMonitorData(waveMonitor);
+        try {
+            warningService.checkDateForWarning(pressMonirot);
+            warningService.checkDateForWarning(waveMonitor);
+        } catch (Exception e) {
+            log.error("donghua checkDateForWarning error",e);
+        }
         log.debug("DH data save successful");
 
     }

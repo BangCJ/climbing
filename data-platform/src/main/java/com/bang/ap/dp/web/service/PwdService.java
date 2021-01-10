@@ -15,5 +15,7 @@ public interface PwdService {
 
     boolean checkPwd(String code ,String pwd);
 
+    boolean checkPwd(String code ,String pwd,String ip);
+
 
 }

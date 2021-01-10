@@ -72,7 +72,7 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         //2、保存数据
         try {
             FrequenceInRoomDTO frequenceInRoomDTO = new FrequenceInRoomDTO();
-            int rootId = 0;
+            int rootId = 1;
             frequenceInRoomDTO.setRoomId(rootId);
             frequenceInRoomDTO.setTimes(total);
             frequenceInRoomDTO.setCheckDate(DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
@@ -152,7 +152,7 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
 
         //2、保存数据
-        int roomId = 0;
+        int roomId = 1;
         RoomUseTimeDTO roomUseTimeDTO = new RoomUseTimeDTO();
         roomUseTimeDTO.setRoomId(roomId);
         roomUseTimeDTO.setTimeLength(interval);

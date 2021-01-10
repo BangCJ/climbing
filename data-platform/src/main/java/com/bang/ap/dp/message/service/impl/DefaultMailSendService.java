@@ -16,6 +16,10 @@ import java.io.File;
 @Service
 @Slf4j
 public class DefaultMailSendService implements IMailSendService {
+
+    @Value("${ap.email.enable:false}")
+    private boolean isEmailEnable;
+
     /**
      * Spring Boot 提供了一个发送邮件的简单抽象，使用的是下面这个接口，这里直接注入即可使用
      */
@@ -36,6 +40,10 @@ public class DefaultMailSendService implements IMailSendService {
      */
     @Override
     public void sendSimpleMail(String to, String subject, String content) {
+        if (!isEmailEnable){
+            log.error("邮件服务未启用");
+            return ;
+        }
         //创建SimpleMailMessage对象
         SimpleMailMessage message = new SimpleMailMessage();
         //邮件发送人

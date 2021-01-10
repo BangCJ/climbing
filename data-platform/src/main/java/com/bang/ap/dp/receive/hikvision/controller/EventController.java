@@ -21,19 +21,20 @@ public class EventController {
      * 按事件类型订阅事件
      * @return
      */
-    @RequestMapping(path = "/subscribe", method = RequestMethod.GET)
+    @RequestMapping(path = "/subscribe", method = RequestMethod.POST)
     @ResponseBody
-    public String subscribeEventByType(HttpServletRequest request) {
-        String eventType=request.getParameter("eventType");
-        String eventDest=request.getParameter("eventDest");
+    public String subscribeEventByType(@RequestBody JSONObject param) {
+
+        int eventType=param.getInteger("eventType");
+        String eventDest=param.getString("eventDest");
         JSONObject jsonObject=new JSONObject();
         JSONArray  eventTypeJsonArray=new JSONArray();
         eventTypeJsonArray.add(eventType);
-        jsonObject.put("eventType",eventTypeJsonArray);
+        jsonObject.put("eventTypes",eventTypeJsonArray);
         jsonObject.put("eventDest",eventDest);
         jsonObject.put("subType",0);
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_EVENT_SUBSCRIBE,jsonObject);
-        log.info("按照事件类型订阅事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_EVENT_SUBSCRIBE,jsonObject.toJSONString(),request);
+        log.info("按照事件类型订阅事件，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_EVENT_SUBSCRIBE,jsonObject.toJSONString(),result);
         return result;
 
     }
@@ -64,6 +65,19 @@ public class EventController {
         String result=hikvisionUtil.getDataFromHikvision(UrlConstant.URL_EVENT_SUBSCRIBED_LIST_,new JSONObject());
         log.info("查询事件订阅信息，请求url={},请求参数为{},请求结果为{}",UrlConstant.URL_EVENT_SUBSCRIBED_LIST_,"空",request);
         return result;
+
+    }
+
+    /**
+     * 事件回调
+     * @return
+     */
+    @RequestMapping(path = "/onEvent/intrusionWarning")
+    @ResponseBody
+    public String intrusionWarning(HttpServletRequest request) {
+        log.info("接收到事件/onEvent/intrusionWarning回调信息:");
+
+        return "success";
 
     }
 

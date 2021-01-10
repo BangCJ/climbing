@@ -71,6 +71,7 @@
         <![CDATA[and login_time <= #{searchMap.endTime}]]>
       </if>
     </where>
+    order by login_time desc
   </select>
 
 

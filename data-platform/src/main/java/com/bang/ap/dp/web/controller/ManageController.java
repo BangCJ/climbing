@@ -1,13 +1,11 @@
 package com.bang.ap.dp.web.controller;
 
 import com.alibaba.fastjson.JSONObject;
+import com.bang.ap.dp.utils.IpUtil;
 import com.bang.ap.dp.utils.PageRequest;
 import com.bang.ap.dp.utils.PageResult;
 import com.bang.ap.dp.utils.ResponseUtil;
-import com.bang.ap.dp.web.entity.MessageReceiverInfo;
-import com.bang.ap.dp.web.entity.PwdInfo;
-import com.bang.ap.dp.web.entity.RoomInfo;
-import com.bang.ap.dp.web.entity.UserInfo;
+import com.bang.ap.dp.web.entity.*;
 import com.bang.ap.dp.web.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +13,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 @Controller
@@ -41,6 +40,9 @@ public class ManageController {
 
     @Autowired
     private MessageConfigService messageConfigService;
+
+    @Autowired
+    private MessageService messageService;
 
     @RequestMapping(path = "/getUserList", method = RequestMethod.GET)
     @ResponseBody
@@ -80,10 +82,13 @@ public class ManageController {
                 return ResponseUtil.buildFailureResponse("用户名称不能为空");
             }
             userService.checkRepeat(userInfo);
+
             if (userInfo.getId() != 0) {
                 userService.updateUserInfo(userInfo);
+            }else{
+                userService.addUserInfo(userInfo);
             }
-            userService.addUserInfo(userInfo);
+
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseUtil.buildFailureResponse(e.getMessage());
@@ -245,14 +250,15 @@ public class ManageController {
 
     @RequestMapping(path = "/checkPwd", method = RequestMethod.POST)
     @ResponseBody
-    public JSONObject checkPwd(@RequestBody JSONObject loginInfo) {
+    public JSONObject checkPwd(@RequestBody JSONObject loginInfo, HttpServletRequest httpServletRequest) {
         try {
             String code = (String) loginInfo.get("code");
             String pwd = (String) loginInfo.get("pwd");
             if (StringUtils.isEmpty(code) || StringUtils.isEmpty(pwd)) {
                 return ResponseUtil.buildFailureResponse("用户名和密码不能为空");
             }
-            if (pwdService.checkPwd(code, pwd)) {
+            String ip = IpUtil.getIpAddress(httpServletRequest);
+            if (pwdService.checkPwd(code, pwd, ip)) {
                 return ResponseUtil.buildSuccessResponse();
             } else {
                 return ResponseUtil.buildFailureResponse("用户名或密码错误");
@@ -302,16 +308,16 @@ public class ManageController {
         }
     }
 
-    @RequestMapping(path = "/savaMessageConfig", method = RequestMethod.POST)
+    @RequestMapping(path = "/saveMessageConfig", method = RequestMethod.POST)
     @ResponseBody
     public JSONObject savaMessageConfig(@RequestBody MessageReceiverInfo messageReceiverInfo) {
         try {
-            if (0!=messageReceiverInfo.getId()){
+            messageReceiverInfo.setCreateTime(new Date());
+            messageReceiverInfo.setUpdateTime(new Date());
+            if (0 != messageReceiverInfo.getId()) {
                 messageConfigService.updateMessageReceiveConfig(messageReceiverInfo);
-            }else{
-                messageReceiverInfo.setCreateTime(new Date());
-                messageReceiverInfo.setUpdateTime(new Date());
-                messageConfigService.addMessageReceiveConfig(messageReceiverInfo);
+            } else {
+              throw new Exception("数据非法");
             }
             return ResponseUtil.buildSuccessResponse();
         } catch (Exception e) {
@@ -322,30 +328,25 @@ public class ManageController {
 
     @RequestMapping(path = "/getMessageConfig", method = RequestMethod.GET)
     @ResponseBody
-    public JSONObject getMessageConfig() {
+    public JSONObject getMessageConfig(@RequestParam(name = "name", defaultValue = "") String name) {
         try {
-            MessageReceiverInfo messageReceiverInfo = messageConfigService.getMessageReceiveConfig();
-
-            String receiverString =messageReceiverInfo.getReceiverString();
-            if (null!=receiverString){
-                String[]userIdArray=receiverString.split(",");
-                if (userIdArray!=null&&userIdArray.length>0){
-                    List<UserInfo>usrList=new ArrayList<>();
-                    for (int i = 0; i < userIdArray.length; i++) {
-                        UserInfo userInfo=new UserInfo();
-                        userInfo=userService.getUserById(Integer.valueOf(userIdArray[i]));
-                        usrList.add(userInfo);
-                    }
-                    messageReceiverInfo.setReceiverList(usrList);
-                }
-            }
-
-
-
+            List<MessageReceiverInfo> messageReceiverInfo = messageConfigService.getMessageReceiveConfigList();
             return ResponseUtil.buildSuccessResponse(messageReceiverInfo);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             return ResponseUtil.buildFailureResponse("操作失败");
+        }
+    }
+
+    @RequestMapping(path = "/sendMessage", method = RequestMethod.POST)
+    @ResponseBody
+    public JSONObject sendMessage(@RequestBody WarningInfo warningInfo) {
+        try {
+            messageService.sendMessage(warningInfo);
+            return ResponseUtil.buildSuccessResponse();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseUtil.buildFailureResponse("消息发送失败");
         }
     }
 

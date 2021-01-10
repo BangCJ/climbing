@@ -11,13 +11,16 @@ import java.util.Map;
 @Mapper
 public interface MessageConfigMapper {
 
-    MessageReceiverInfo getMessageReceiveConfig();
 
     List<MessageReceiverInfo> getMessageReceiveConfigList();
 
     void addMessageReceiveConfig(MessageReceiverInfo messageReceiverInfo);
 
     void updateMessageReceiveConfig(MessageReceiverInfo messageReceiverInfo);
+
+    void deleteMessageReceiveConfigByUserId(String userId);
+
+    void deleteMessageReceiveConfigById(int id);
 
 
 

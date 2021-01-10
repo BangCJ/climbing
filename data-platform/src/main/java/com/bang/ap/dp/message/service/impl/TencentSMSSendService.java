@@ -34,10 +34,19 @@ public class TencentSMSSendService implements ISMSSendService {
     @Value("${ap.sms.sdkAppid}")
     private String sdkAppid;
 
+    @Value("${ap.sms.enable:false}")
+    private boolean isSmsEnable;
+
+
+
     @Override
     public void sendSMS(String phoneNum, String [] templateParamSet){
         try{
 
+            if (!isSmsEnable){
+                log.error("短信服务未启用");
+                return;
+            }
             Credential cred = new Credential(secretId, secretKey);
             HttpProfile httpProfile = new HttpProfile();
             httpProfile.setEndpoint(endPoint);

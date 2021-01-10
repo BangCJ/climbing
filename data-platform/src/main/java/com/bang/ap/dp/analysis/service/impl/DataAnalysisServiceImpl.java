@@ -6,14 +6,14 @@ import com.bang.ap.dp.analysis.dto.*;
 import com.bang.ap.dp.analysis.service.DataAnalysisService;
 import com.bang.ap.dp.cons.DPConstant;
 import com.bang.ap.dp.cons.UrlConstant;
+import com.bang.ap.dp.cons.WarningTypeConst;
 import com.bang.ap.dp.utils.DPTimeUtil;
 import com.bang.ap.dp.utils.HikvisionUtil;
 import com.bang.ap.dp.utils.PictureUtil;
 import com.bang.ap.dp.web.entity.MonitorData;
-import com.bang.ap.dp.web.mapper.FrequenceInRoomMapper;
-import com.bang.ap.dp.web.mapper.MonitorDataMapper;
-import com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper;
-import com.bang.ap.dp.web.mapper.StrangerInfoMapper;
+import com.bang.ap.dp.web.entity.WarningInfo;
+import com.bang.ap.dp.web.entity.WarningTypeInfo;
+import com.bang.ap.dp.web.mapper.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -38,6 +38,15 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
     @Autowired
     private MonitorDataMapper monitorDataMapper;
+
+    @Autowired
+    private WarningMapper warningMapper;
+
+    @Autowired
+    private WarningTypeMapper warningTypeMapper;
+
+    @Autowired
+    private TerminalMapper terminalMapper;
 
     @Autowired
     HikvisionUtil hikvisionUtil;
@@ -258,38 +267,67 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         WarningAmountDTO amountDTO = new WarningAmountDTO();
         List<WarningTypeDTO> warningTypeDTOList = new ArrayList<>();
         List<WarningDetailDTO> warningDetailDTOList = new ArrayList<>();
-        List<WarningDailyAmountDTO> dailyAmountDTOS = new ArrayList<>();
+        /*1、获取预警类型*/
+        List<WarningTypeInfo> warningTypeInfoList = warningTypeMapper.getWarningType();
+        int allTypeNum = 0;
+        if (null != warningTypeInfoList && warningTypeInfoList.size() > 0) {
+            for (int i = 0; i < warningTypeInfoList.size(); i++) {
+                int account = warningMapper.selectAmountByType(warningTypeInfoList.get(i).getCode());
+                warningTypeInfoList.get(i).setAccount(account);
+                allTypeNum = allTypeNum + account;
+            }
 
-        WarningTypeDTO warningTypeDTO1 = new WarningTypeDTO("yuejie", "越界预警", "10");
-        WarningTypeDTO warningTypeDTO2 = new WarningTypeDTO("chuanganqi", "传感器预警", "70");
-        WarningTypeDTO warningTypeDTO3 = new WarningTypeDTO("qushi", "趋势预警", "10");
-        WarningTypeDTO warningTypeDTO4 = new WarningTypeDTO("other", "其他预警", "10");
-        warningTypeDTOList.add(warningTypeDTO1);
-        warningTypeDTOList.add(warningTypeDTO2);
-        warningTypeDTOList.add(warningTypeDTO3);
-        warningTypeDTOList.add(warningTypeDTO4);
-
-        for (int i = 0; i < 7; i++) {
-            WarningDetailDTO detailDTO = new WarningDetailDTO();
-            detailDTO.setArea("实验室301");
-            detailDTO.setTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
-            detailDTO.setWarningInfo("实验室温度当前值为4" + i + "度，超过阈值");
-            detailDTO.setWarningType("传感器预警");
-            warningDetailDTOList.add(detailDTO);
         }
 
+        if (null != warningTypeInfoList && warningTypeInfoList.size() > 0) {
+            List<Integer> num = new ArrayList<>();
+            for (int i = 0; i < warningTypeInfoList.size(); i++) {
+                int per=0;
+                if (i == warningTypeInfoList.size() - 1) {
+                     per = 100;
+                    for (int j = 0; j < num.size(); j++) {
+                        per = per - num.get(j);
+                    }
+                } else {
+                     per = warningTypeInfoList.get(i).getAccount() * 100 / allTypeNum;
+                }
+                WarningTypeDTO warningTypeDTO = new WarningTypeDTO(warningTypeInfoList.get(i).getCode(), warningTypeInfoList.get(i).getName(), String.valueOf(per));
+                warningTypeDTOList.add(warningTypeDTO);
+                num.add(per);
+            }
+
+        }
+
+        /*2、获取预警数量*/
         Date today = new Date();
         List<WarningDailyAmountDTO> dailyAmountDTOList = new ArrayList<>();
+        int todayAmount = 0;
+        int allAmount = 0;
         for (int i = 1; i < 8; i++) {
+            String toDayString = DPTimeUtil.formatDate(today, DPConstant.DATE_FORMAT_DATETYPE);
+            int amount = warningMapper.selectAmountByDate(toDayString);
+            if (i == 1) {
+                todayAmount = amount;
+            }
             WarningDailyAmountDTO dailyAmountDTO = new WarningDailyAmountDTO();
-            dailyAmountDTO.setAmount(String.valueOf(i));
-            dailyAmountDTO.setDate(DPTimeUtil.formatDate(today, DPConstant.DATE_FORMAT_DATETYPE));
+            dailyAmountDTO.setAmount(String.valueOf(amount));
+            dailyAmountDTO.setDate(toDayString);
             dailyAmountDTOList.add(dailyAmountDTO);
             today = DPTimeUtil.getYesterday();
         }
-        amountDTO.setTodayAmount("0");
-        amountDTO.setHistoryAmount("111");
+        allAmount = warningMapper.selectAllAmount();
+
+        amountDTO.setTodayAmount(String.valueOf(todayAmount));
+        amountDTO.setHistoryAmount(String.valueOf(allAmount));
         amountDTO.setDailyAmount(dailyAmountDTOList);
+
+        /*3、获取预警详情*/
+        List<WarningInfo> warningInfoList = warningMapper.getLastWarningData();
+        if (null != warningInfoList && warningInfoList.size() > 0) {
+            warningInfoList.forEach(item -> {
+                warningDetailDTOList.add(new WarningDetailDTO(item.getWarningArea(), WarningTypeConst.warningNameMap.get(item.getWarningType()), item.getWarningContent(), DPTimeUtil.formatDate(item.getCreateTime())));
+            });
+        }
 
         responseDTO.setWarningType(warningTypeDTOList);
         responseDTO.setWarningAmount(amountDTO);
@@ -323,18 +361,23 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
     public TerminalResponseDTO getTerminalInfo() {
         TerminalResponseDTO responseDTO = new TerminalResponseDTO();
         List<TerminalAmountDTO> terminalAmountDTOList = new ArrayList<>();
-        TerminalHealthCheckDTO healthCheckDTO = new TerminalHealthCheckDTO();
-        TerminalAmountDTO terminalAmountDTO1 = new TerminalAmountDTO("10", "摄像头", "camera");
-        TerminalAmountDTO terminalAmountDTO2 = new TerminalAmountDTO("20", "传感器", "sensor");
+        int healthySensorNum=terminalMapper.getTerminalLAmountByTypeAndStatus("sensor","1");
+        int unHealthySensorNum=terminalMapper.getTerminalLAmountByTypeAndStatus("sensor","0");
+        int healthyCameraNum=terminalMapper.getTerminalLAmountByTypeAndStatus("camera","1");
+        int unHealthyCameraNum=terminalMapper.getTerminalLAmountByTypeAndStatus("camera","0");
+        int all=healthySensorNum+unHealthySensorNum+healthyCameraNum+unHealthyCameraNum;
+
+        TerminalAmountDTO terminalAmountDTO1 = new TerminalAmountDTO(String.valueOf(healthyCameraNum+unHealthyCameraNum), "摄像头", "camera");
+        TerminalAmountDTO terminalAmountDTO2 = new TerminalAmountDTO(String.valueOf(healthySensorNum+unHealthySensorNum), "传感器", "sensor");
         terminalAmountDTOList.add(terminalAmountDTO1);
         terminalAmountDTOList.add(terminalAmountDTO2);
 
 
         List<TerminalHealthCheckDTO> terminalHealthCheckDTOList = new ArrayList<>();
-        TerminalHealthCheckDTO terminalHealthCheckDTO1 = new TerminalHealthCheckDTO("健康摄像头", 10);
-        TerminalHealthCheckDTO terminalHealthCheckDTO2 = new TerminalHealthCheckDTO("非健康摄像头", 30);
-        TerminalHealthCheckDTO terminalHealthCheckDTO3 = new TerminalHealthCheckDTO("健康传感器", 20);
-        TerminalHealthCheckDTO terminalHealthCheckDTO4 = new TerminalHealthCheckDTO("非健康传感器", 40);
+        TerminalHealthCheckDTO terminalHealthCheckDTO1 = new TerminalHealthCheckDTO("健康摄像头", 100*healthyCameraNum/all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO2 = new TerminalHealthCheckDTO("非健康摄像头", 100*unHealthyCameraNum/all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO3 = new TerminalHealthCheckDTO("健康传感器", 100*healthySensorNum/all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO4 = new TerminalHealthCheckDTO("非健康传感器", 100-100*healthyCameraNum/all-100*unHealthyCameraNum/all-100*healthySensorNum/all);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO1);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO2);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO3);
@@ -362,8 +405,8 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         try {
             for (int i = 0; i < monitorTypeList.size(); i++) {
                 List<MonitorData> monitorData = monitorDataMapper.getLastMonitorDataByType(monitorTypeList.get(i));
-                if (null != monitorData && monitorData.size()>0) {
-                    monitorDataList.add(monitorData.get(0));
+                if (null != monitorData && monitorData.size() > 0) {
+                    monitorDataList.addAll(monitorData);
                 }
             }
         } catch (Exception e) {

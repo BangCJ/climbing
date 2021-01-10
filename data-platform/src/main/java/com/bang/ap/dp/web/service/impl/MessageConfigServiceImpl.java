@@ -34,12 +34,9 @@ public class MessageConfigServiceImpl implements MessageConfigService {
     private MessageConfigMapper messageConfigMapper;
 
     @Override
-    public MessageReceiverInfo getMessageReceiveConfig() {
+    public  List<MessageReceiverInfo> getMessageReceiveConfigList() {
        List<MessageReceiverInfo>  messageReceiverInfoList= messageConfigMapper.getMessageReceiveConfigList();
-       if (messageReceiverInfoList!=null&&messageReceiverInfoList.size()>0){
-           return messageReceiverInfoList.get(0);
-       }
-        return new MessageReceiverInfo();
+        return messageReceiverInfoList;
     }
 
     @Override
@@ -50,7 +47,8 @@ public class MessageConfigServiceImpl implements MessageConfigService {
 
     @Override
     public void updateMessageReceiveConfig(MessageReceiverInfo messageReceiverInfo) {
-        messageConfigMapper.updateMessageReceiveConfig(messageReceiverInfo);
+        messageConfigMapper.deleteMessageReceiveConfigByUserId(messageReceiverInfo.getReceiverId());
+        messageConfigMapper.addMessageReceiveConfig(messageReceiverInfo);
 
     }
 }

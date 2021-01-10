@@ -67,7 +67,7 @@
 
   <update id="updateRoomInfo" parameterType="com.bang.ap.dp.web.entity.RoomInfo" >
     update
-    <include refid="Base_Column_List" />
+    <include refid="Base_Table" />
     <set >
       <if test="code != null and code !='' " >
         code = #{code,jdbcType=VARCHAR},
@@ -75,13 +75,10 @@
       <if test="name != null and name !='' " >
         name = #{name,jdbcType=VARCHAR},
       </if>
-      <if test="displayName != null and displayName !='' " >
+      <if test="owner != null and owner !='' " >
         owner = #{owner,jdbcType=VARCHAR},
       </if>
 
-      <if test="updateTime != null and updateTime !=''" >
-        updateTime = #{updateTime,jdbcType=TIMESTAMP}
-      </if>
     </set>
     where id = #{id,jdbcType=VARCHAR}
   </update>

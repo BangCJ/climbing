@@ -29,14 +29,12 @@ public class MessageReceiverInfo implements Serializable {
      */
     private boolean voiceEnable;
 
-    private String  receiverString;
     /**
      * 消息接收人id
      */
-    private List<Integer> receiverIdList;
+    private String  receiverId;
 
-    private List<UserInfo> receiverList;
-
+    private String receiverName;
 
     /**
      * 创建时间

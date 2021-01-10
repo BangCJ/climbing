@@ -9,6 +9,7 @@ import com.bang.ap.dp.web.entity.MonitorData;
 import com.bang.ap.dp.web.entity.TerminalInfo;
 import com.bang.ap.dp.web.mapper.MonitorDataMapper;
 import com.bang.ap.dp.web.mapper.TerminalMapper;
+import com.bang.ap.dp.web.service.WarningService;
 import com.google.gson.JsonObject;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +35,9 @@ public class HikSensorServiceImpl implements HikSensorService {
 
     @Autowired
     private MonitorDataMapper monitorDataMapper;
+
+    @Autowired
+    private WarningService warningService;
 
     @Override
     public boolean saveSensorInfo() {
@@ -62,6 +66,12 @@ public class HikSensorServiceImpl implements HikSensorService {
                         monitorData.setCreateTime(new Date());
                         monitorData.setUpdateTime(new Date());
                         monitorDataMapper.addMonitorData(monitorData);
+
+                        try {
+                            warningService.checkDateForWarning(monitorData);
+                        } catch (Exception e) {
+                            log.error("checkDateForWarning error",e);
+                        }
                     }else{
                         throw new Exception("获取海康传感器监控数据失败");
                     }

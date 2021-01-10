@@ -45,7 +45,7 @@
       </if>
     </where>
     order by create_time desc
-    limit 1
+    limit 7
   </select>
 
   <select id="getMonitorDataByParam" parameterType="com.bang.ap.dp.web.entity.MonitorData" resultMap="BaseResultMap">

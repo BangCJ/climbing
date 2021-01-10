@@ -16,4 +16,16 @@ public interface WarningMapper {
 
     List<WarningInfo> selectPage(@Param("searchMap") Map<String, Object> searchMap);
 
+    List<WarningInfo> getLastWarningData();
+
+    List<WarningInfo> selectByDate(String warningTime);
+
+    int selectAmountByDate(String warningTime);
+
+
+    int selectAmountByType(String warningType);
+
+    int selectAllAmount();
+
+
 }

@@ -6,8 +6,10 @@ import com.bang.ap.dp.utils.PageRequest;
 import com.bang.ap.dp.utils.PageResult;
 import com.bang.ap.dp.utils.PageUtils;
 import com.bang.ap.dp.utils.ValidateUtil;
+import com.bang.ap.dp.web.entity.MessageReceiverInfo;
 import com.bang.ap.dp.web.entity.PwdInfo;
 import com.bang.ap.dp.web.entity.UserInfo;
+import com.bang.ap.dp.web.mapper.MessageConfigMapper;
 import com.bang.ap.dp.web.mapper.PwdMapper;
 import com.bang.ap.dp.web.mapper.UserMapper;
 import com.bang.ap.dp.web.service.UserService;
@@ -31,16 +33,16 @@ public class UserServiceImpl implements UserService {
     private UserMapper userMapper;
     @Autowired
     private PwdMapper pwdMapper;
+    @Autowired
+    private MessageConfigMapper messageConfigMapper;
 
     @Autowired
     private RedisTemplate redisTemplate;
 
     @Override
     public UserInfo getUserById(int id) {
-        UserInfo user = (UserInfo) redisTemplate.opsForValue().get("userObj");
 
-        user = userMapper.selectById(id);
-        redisTemplate.opsForValue().set("userObj", user,10, TimeUnit.MINUTES);
+        UserInfo user = userMapper.selectById(id);
         return user;
     }
 
@@ -60,6 +62,19 @@ public class UserServiceImpl implements UserService {
         pwdInfo.setCreateTime(new Date());
         pwdInfo.setUpdateTime(new Date());
         pwdMapper.addPwdInfo(pwdInfo);
+
+        MessageReceiverInfo messageReceiverInfo=new MessageReceiverInfo();
+        messageReceiverInfo.setReceiverId(userInfo.getId()+"");
+        messageReceiverInfo.setReceiverName(userInfo.getName());
+        messageReceiverInfo.setEmailEnable(false);
+        messageReceiverInfo.setSmsEnable(false);
+        messageReceiverInfo.setVoiceEnable(false);
+        messageReceiverInfo.setUpdateTime(new Date());
+        messageReceiverInfo.setCreateTime(new Date());
+        messageConfigMapper.addMessageReceiveConfig(messageReceiverInfo);
+
+
+
 
     }
 
@@ -81,38 +96,78 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean checkRepeat(UserInfo userInfo) throws Exception {
-        if (StringUtils.isNotEmpty(userInfo.getCode())){
-            UserInfo codeUser=new UserInfo();
-            codeUser.setCode(userInfo.getCode());
-            List<UserInfo>codeUserList=userMapper.getUserByUserInfo(codeUser);
-            if (codeUserList !=null && codeUserList.size()>0){
-                throw  new Exception("用户编码重复");
+        if (userInfo.getId()!=0){
+            if (StringUtils.isNotEmpty(userInfo.getCode())){
+                UserInfo codeUser=new UserInfo();
+                codeUser.setCode(userInfo.getCode());
+                List<UserInfo>codeUserList=userMapper.getUserByUserInfo(codeUser);
+                if (codeUserList !=null && codeUserList.size()>1){
+                    throw  new Exception("用户编码重复");
+                }
             }
+            if (StringUtils.isNotEmpty(userInfo.getEmail())){
+                if (!ValidateUtil.isEmailLegal(userInfo.getEmail())){
+                    throw  new Exception("用户邮箱格式非法");
+                }
+                UserInfo emailUser=new UserInfo();
+                emailUser.setEmail(userInfo.getEmail());
+                List<UserInfo>emailUserList=userMapper.getUserByUserInfo(emailUser);
+                if (emailUserList !=null && emailUserList.size()>1){
+                    throw  new Exception("用户邮箱重复重复");
+                }
+            }
+
+            if (StringUtils.isNotEmpty(userInfo.getPhone())){
+                if (!ValidateUtil.isChinaPhoneLegal(userInfo.getPhone())){
+                    throw  new Exception("用户手机号格式非法");
+                }
+                UserInfo phoneUser=new UserInfo();
+                phoneUser.setPhone(userInfo.getPhone());
+                List<UserInfo>phoneUserList=userMapper.getUserByUserInfo(phoneUser);
+                if (phoneUserList !=null && phoneUserList.size()>1){
+                    throw  new Exception("用户手机号重复");
+                }
+            }
+
+        }else{
+            if (StringUtils.isNotEmpty(userInfo.getCode())){
+                UserInfo codeUser=new UserInfo();
+                codeUser.setCode(userInfo.getCode());
+                List<UserInfo>codeUserList=userMapper.getUserByUserInfo(codeUser);
+                if (codeUserList !=null && codeUserList.size()>0){
+                    throw  new Exception("用户编码重复");
+                }
+            }
+            if (StringUtils.isNotEmpty(userInfo.getEmail())){
+                if (!ValidateUtil.isEmailLegal(userInfo.getEmail())){
+                    throw  new Exception("用户邮箱格式非法");
+                }
+                UserInfo emailUser=new UserInfo();
+                emailUser.setEmail(userInfo.getEmail());
+                List<UserInfo>emailUserList=userMapper.getUserByUserInfo(emailUser);
+                if (emailUserList !=null && emailUserList.size()>0){
+                    throw  new Exception("用户邮箱重复重复");
+                }
+            }
+
+            if (StringUtils.isNotEmpty(userInfo.getPhone())){
+                if (!ValidateUtil.isChinaPhoneLegal(userInfo.getPhone())){
+                    throw  new Exception("用户手机号格式非法");
+                }
+                UserInfo phoneUser=new UserInfo();
+                phoneUser.setPhone(userInfo.getPhone());
+                List<UserInfo>phoneUserList=userMapper.getUserByUserInfo(phoneUser);
+                if (phoneUserList !=null && phoneUserList.size()>0){
+                    throw  new Exception("用户手机号重复");
+                }
+            }
+
         }
 
-        if (StringUtils.isNotEmpty(userInfo.getEmail())){
-            if (!ValidateUtil.isEmailLegal(userInfo.getEmail())){
-                throw  new Exception("用户邮箱格式非法");
-            }
-            UserInfo emailUser=new UserInfo();
-            emailUser.setEmail(userInfo.getEmail());
-            List<UserInfo>emailUserList=userMapper.getUserByUserInfo(emailUser);
-            if (emailUserList !=null && emailUserList.size()>0){
-                throw  new Exception("用户邮箱重复重复");
-            }
-        }
 
-        if (StringUtils.isNotEmpty(userInfo.getPhone())){
-            if (!ValidateUtil.isChinaPhoneLegal(userInfo.getPhone())){
-                throw  new Exception("用户手机号格式非法");
-            }
-            UserInfo phoneUser=new UserInfo();
-            phoneUser.setPhone(userInfo.getPhone());
-            List<UserInfo>phoneUserList=userMapper.getUserByUserInfo(phoneUser);
-            if (phoneUserList !=null && phoneUserList.size()>0){
-                throw  new Exception("用户手机号重复");
-            }
-        }
+
+
+
 
 
         return true;

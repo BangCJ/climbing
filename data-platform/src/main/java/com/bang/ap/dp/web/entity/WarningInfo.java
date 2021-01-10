@@ -32,7 +32,7 @@ public class WarningInfo implements Serializable {
      */
     private String warningTime;
     /**
-     * 预警时间
+     * 预警区域
      */
     private String warningArea;
     /**
