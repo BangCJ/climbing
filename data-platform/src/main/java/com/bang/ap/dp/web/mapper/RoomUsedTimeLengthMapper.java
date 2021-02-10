@@ -1,7 +1,6 @@
 package com.bang.ap.dp.web.mapper;
 
 import com.bang.ap.dp.analysis.dto.RoomUseTimeDTO;
-import com.bang.ap.dp.analysis.dto.RoomUseTimeDTO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

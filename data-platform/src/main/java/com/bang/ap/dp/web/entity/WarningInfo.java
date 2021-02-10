@@ -36,6 +36,10 @@ public class WarningInfo implements Serializable {
      */
     private String warningArea;
     /**
+     * 预警信息相关链接信息
+     */
+    private String warningAttach;
+    /**
      * 创建时间
      */
     private Date createTime;

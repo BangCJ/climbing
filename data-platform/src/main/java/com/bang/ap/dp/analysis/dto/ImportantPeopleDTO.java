@@ -14,7 +14,9 @@ public class ImportantPeopleDTO {
     public String code;
     public String name;
     public String times;
+    //抓拍图
     public String picture;
+    //标准图
     public String picture2;
 
     public String dataTime;

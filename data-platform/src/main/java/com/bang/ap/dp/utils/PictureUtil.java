@@ -4,6 +4,7 @@ import sun.misc.BASE64Decoder;
 import sun.misc.BASE64Encoder;
 
 import java.io.*;
+import java.util.Set;
 
 public class PictureUtil {
     public static String GetImageStr(String imgFilePath) {// 将图片文件转化为字节数组字符串，并对其进行Base64编码处理
@@ -47,6 +48,25 @@ public class PictureUtil {
         } catch (Exception e) {
             return false;
         }
+    }
+
+
+    public static String getPictureName(String type) {
+        long id=new SnowflakeIdWorker(0, 0).nextId();
+        String date=DPTimeUtil.getCurrentLocalDateTime("MMdd");
+        String result=type+"_"+date+"_"+id+".jpg";
+        return result;
+    }
+
+
+    public static boolean checkPictureExisted(String path){
+        File file = new File(path);
+        if (file.exists()){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
 

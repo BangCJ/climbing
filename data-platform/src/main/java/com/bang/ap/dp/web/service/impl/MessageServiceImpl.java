@@ -1,6 +1,7 @@
 package com.bang.ap.dp.web.service.impl;
 
 
+import com.alibaba.fastjson.JSON;
 import com.bang.ap.dp.message.service.IMailSendService;
 import com.bang.ap.dp.message.service.ISMSSendService;
 import com.bang.ap.dp.web.entity.MessageInfo;
@@ -61,7 +62,7 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public void sendMessage(WarningInfo warning) {
         if (!isMessgeEnable){
-            log.error("当前环境配置不发送消息");
+            log.error("当前环境配置不发送消息，消息内容为{}", JSON.toJSONString(warning));
             return ;
         }
         //查询消息接收配置

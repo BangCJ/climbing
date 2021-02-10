@@ -15,11 +15,13 @@ import com.bang.ap.dp.web.entity.WarningInfo;
 import com.bang.ap.dp.web.entity.WarningTypeInfo;
 import com.bang.ap.dp.web.mapper.*;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 @Service
@@ -35,6 +37,9 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
     @Autowired
     private StrangerInfoMapper strangerInfoMapper;
+
+    @Autowired
+    private ImportantPeopleMapper importantPeopleMapper;
 
     @Autowired
     private MonitorDataMapper monitorDataMapper;
@@ -54,7 +59,16 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
     @Value("${picture.url}")
     private String picturl;
 
+    @Value("${relation.name.picture}")
+    private String namePictureRelation;
 
+
+    /**
+     * 查询近七日的实验室${id}的进出人次
+     *
+     * @param id
+     * @return
+     */
     @Override
     public List<FrequenceInRoomDTO> getFrequenceOfRoomInOneWeek(String id) {
         //查询最近七天内的实验室${id}，进出人次
@@ -62,16 +76,29 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         return frequenceInRoomDTOList;
     }
 
+    /**
+     * 查询最近七天内的实验室${id}，使用时长
+     *
+     * @param id 实验室id
+     * @return
+     */
     @Override
     public List<RoomUseTimeDTO> getRoomUsedTimeInOneWeek(int id) {
         RoomUseTimeDTO roomUseTimeDTO = new RoomUseTimeDTO();
         roomUseTimeDTO.setRoomId(id);
         roomUseTimeDTO.setTimeLength(0);
-        //查询最近七天内的实验室${id}，使用时常
+        //查询最近七天内的实验室${id}，使用时长
         List<RoomUseTimeDTO> roomUseTimeDTOList = roomUsedTimeLengthMapper.getTop7RoomUseTime(roomUseTimeDTO);
         return roomUseTimeDTOList;
     }
 
+    /**
+     * 查询近七天，实验室的使用时长占比
+     * ${有人的时长}/24
+     *
+     * @param id 实验室id
+     * @return
+     */
     @Override
     public int getRooUserdRateInOneWeek(int id) {
         long allTime = 0;
@@ -88,29 +115,120 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         return (int) (allTime * 100 / (24 * roomUseTimeDTOList.size()));
     }
 
+    /**
+     * 获取高频使用人员信息
+     *
+     * @return
+     */
     @Override
     public HighFrequenceResponseDTO getHighFrequenceInfo() {
-        //调用海康接口"按条件查询重点人员事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
-        String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.get7DaysAgo()), DPConstant.DATE_FORMAT);
-        String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
-        JSONObject jsonObject = new JSONObject();
-        JSONArray jsonArray = new JSONArray();
-        jsonArray.add("eca9e1993abe4488bacb875fd68e5935");
-        jsonObject.put("cameraIndexCodes", jsonArray);
-        jsonObject.put("pageNo", 1);
-        jsonObject.put("pageSize", 1000);
-        jsonObject.put("startTime", startTime);
-        jsonObject.put("endTime", endTime);
-        jsonObject.put("similarity", 30);
-
-        Set<String> nameSet = new HashSet<>();
-        Map<String, String> nameAndFaceUrl = new HashMap<>();
-        nameAndFaceUrl.put("徐剑坤", picturl + "standard/xujiankun.png");
-        nameAndFaceUrl.put("覃奔", picturl + "standard/qinben.png");
-        Map<String, Integer> nameAndTimes = new HashMap<>();
         List<ImportantPeopleDTO> importantPeopleDTOList = new ArrayList<>();
+        Map<String, Integer> nameAndTimesMap = new HashMap<>();
+        Set<String> nameSet = new HashSet<>();
+        Map<String, String> nameAndFaceUrl = this.getStandardNameAndPictureRelation();
+        /*1、处理七日内的重点人员出入信息*/
         try {
-            String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_, jsonObject);
+            //获取七日内的重点人员进出信息
+            String sevenDaysAgo = DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-7), DPConstant.DATE_FORMAT_DATETYPE);
+            List<ImportantPeopleDTO> importantPeopleDTOSInSevenDays = importantPeopleMapper.getImportantPeopleDTOByDataTime(sevenDaysAgo);
+            if (null != importantPeopleDTOSInSevenDays && importantPeopleDTOSInSevenDays.size() > 0) {
+                for (int i = 0; i < importantPeopleDTOSInSevenDays.size(); i++) {
+                    ImportantPeopleDTO imp = importantPeopleDTOSInSevenDays.get(i);
+                    String name = imp.getName();
+                    nameSet.add(name);
+                    //出入重点人员频次计数
+                    if (nameAndTimesMap.get(name) == null) {
+                        nameAndTimesMap.put(name, 1);
+                    } else {
+                        nameAndTimesMap.put(name, nameAndTimesMap.get(name) + 1);
+                    }
+                    //处理tomcat重的图片，供前端访问
+                    String pictureUrl = this.doPictureGenerateInTomcat("picture/important/", imp);
+                    imp.setPicture(picturl+"important/"+imp.getSnapUrlPictureNameBak());
+                    imp.setPicture2(nameAndFaceUrl.get(name));
+                    imp.setEventTime(DPTimeUtil.isoStr2utc8Str(imp.getEventTime(), DPConstant.DATE_FORMAT));
+
+                    importantPeopleDTOList.add(imp);
+                }
+
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+
+        /*2、处理高频人员信息*/
+        HighFrequenceResponseDTO responseDTO = new HighFrequenceResponseDTO();
+        //高频人员列表信息
+        List<HighFrequenceDTO> highFrequenceDTOList = new ArrayList<>();
+        for (String name : nameSet) {
+            HighFrequenceDTO highFrequenceDTO = new HighFrequenceDTO();
+            highFrequenceDTO.setId(null);
+            highFrequenceDTO.setName(name);
+            highFrequenceDTO.setCode(null);
+            highFrequenceDTO.setTimes(nameAndTimesMap.get(name).toString());
+            highFrequenceDTO.setPicture(nameAndFaceUrl.get(name));
+            highFrequenceDTOList.add(highFrequenceDTO);
+        }
+
+        //频次最高人员信息
+        Iterator<Map.Entry<String, Integer>> entries = nameAndTimesMap.entrySet().iterator();
+        int standardValue = 0;
+        String finalName = "";
+        while (entries.hasNext()) {
+            Map.Entry<String, Integer> entry = entries.next();
+            if (entry.getValue() > standardValue) {
+                standardValue = entry.getValue();
+                finalName = entry.getKey();
+            }
+        }
+        HighestFrequenceDTO highestFrequenceDTO = new HighestFrequenceDTO();
+        highestFrequenceDTO.setHighestTimes(nameAndTimesMap.get(finalName) + "");
+        highestFrequenceDTO.setHighestName(finalName);
+        highestFrequenceDTO.setPicture(nameAndFaceUrl.get(finalName));
+
+        /*3 拼装返回结果*/
+        responseDTO.setAllData(highFrequenceDTOList);
+        responseDTO.setHighest(highestFrequenceDTO);
+        responseDTO.setImportantPeople(importantPeopleDTOList);
+        return responseDTO;
+    }
+
+    /**
+     * 图片信息另存为
+     *
+     * @param targetPictureUrl
+     * @param imp
+     * @return
+     */
+    private String doPictureGenerateInTomcat(String targetPictureUrl, ImportantPeopleDTO imp) {
+        String snapUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + targetPictureUrl + imp.getSnapUrlPictureNameBak();
+        if (!PictureUtil.checkPictureExisted(snapUrlBak)) {
+            JSONObject pictureParam = new JSONObject();
+            pictureParam.put("url", imp.getSnapUrl());
+            String pactureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, pictureParam);
+            JSONObject pictureDownObject = JSONObject.parseObject(pactureDown);
+            String pictureData = pictureDownObject.get("data").toString();
+            PictureUtil.GenerateImage(pictureData, snapUrlBak);
+        }
+        return snapUrlBak;
+    }
+
+    /**
+     * 获取高频使用人员信息
+     *
+     * @return
+     */
+    public HighFrequenceResponseDTO getHighFrequenceInfoFromHik() {
+        List<ImportantPeopleDTO> importantPeopleDTOList = new ArrayList<>();
+        Set<String> nameSet = new HashSet<>();
+        Map<String, Integer> nameAndTimes = new HashMap<>();
+        Map<String, String> nameAndFaceUrl = this.getStandardNameAndPictureRelation();
+        try {
+            //调用海康接口"按条件查询重点人员事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+            String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.get7DaysAgo()), DPConstant.DATE_FORMAT);
+            String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
+            String result = this.getImportantPeople(startTime, endTime, 15);
             JSONObject resultObject = JSONObject.parseObject(result);
             if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
                 JSONObject dataObject = (JSONObject) resultObject.get("data");
@@ -152,10 +270,7 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                             importantPeopleDTO.setPicture2(nameAndFaceUrl.get(name));
                             importantPeopleDTOList.add(importantPeopleDTO);
 
-
                         }
-
-
                     }
                 }
             }
@@ -199,59 +314,39 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         return responseDTO;
     }
 
+
+    /**
+     * 查询陌生人员信息，数据为最近七天之内的
+     * 包含：最近10条陌生人详情+陌生人占比
+     *
+     * @return
+     */
     @Override
     public StrangerResponseDTO getStrangerInfo() {
-        List<StrangerInfoDTO> strangerInfoDTOList = new ArrayList<>();
-        strangerInfoDTOList = strangerInfoMapper.getTop10StrangerInfoDTO(new StrangerInfoDTO());
-        for (int i = 0; i < strangerInfoDTOList.size(); i++) {
-            //处理图片地址问题，后期改为fastdfs存储
-            String data = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getSnapUrlBak());
-            String bkgPictureName = strangerInfoDTOList.get(i).getSnapUrlPictureNameBak();
-            String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + bkgPictureName;
-            PictureUtil.GenerateImage(data, bkgUrlBak);
-            strangerInfoDTOList.get(i).setPicture(picturl + "stranger/" + bkgPictureName);
-
-
-            String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
-            String backPictureName = strangerInfoDTOList.get(i).getBkgUrlPictureNameBak();
-            String backUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + backPictureName;
-            PictureUtil.GenerateImage(backData, backUrlBak);
-            strangerInfoDTOList.get(i).setBkgUrl(picturl + "stranger/" + backPictureName);
-
-
-            //times
-            strangerInfoDTOList.get(i).setTimes(strangerInfoDTOList.get(i).getTotalSimilar() + "");
-            strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(), DPConstant.DATE_FORMAT));
-
-        }
         StrangerResponseDTO strangerResponseDTO = new StrangerResponseDTO();
-        strangerResponseDTO.setAllData(strangerInfoDTOList);
 
+        /*1、查询最近10条陌生人员信息，并处理其图片地址*/
+        List<StrangerInfoDTO> strangerInfoDTOList = strangerInfoMapper.getTop10StrangerInfoDTO(new StrangerInfoDTO());
+        this.doPictureForStranger(strangerInfoDTOList);
 
-        //查询最近7天
-        //调用海康接口"按条件查询重点人员事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+        /*2、查询最近七天的重点人员信息，获取最近七日重点人员数量*/
         String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.get7DaysAgo()), DPConstant.DATE_FORMAT);
         String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
-        JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject = new JSONObject();
-        jsonArray.add("eca9e1993abe4488bacb875fd68e5935");
-        jsonObject.put("cameraIndexCodes", jsonArray);
-        jsonObject.put("startTime", startTime);
-        jsonObject.put("endTime", endTime);
-        jsonObject.put("similarity", 30);
-        jsonObject.put("pageNo", 1);
-        jsonObject.put("pageSize", 1000);
-        String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_, jsonObject);
+        String result = this.getImportantPeople(startTime, endTime, 15);
         JSONObject resultObject = JSONObject.parseObject(result);
-        int tatal = 0;
+        int tatalImportant = 0;
         if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
-            tatal = resultObject.getJSONObject("data").getIntValue("total");
-
+            tatalImportant = resultObject.getJSONObject("data").getIntValue("total");
         }
 
+        /*3、查询最近七天的陌生人员数量*/
         int totalStranger = strangerInfoMapper.getAccount(DPTimeUtil.formatDate(DPTimeUtil.get7DaysAgo(), DPConstant.DATE_FORMAT_DATETYPE));
-        int rate = totalStranger * 100 / (totalStranger + tatal);
+        int rate = 0;
+        if (0 != totalStranger + tatalImportant) {
+            rate = totalStranger * 100 / (totalStranger + tatalImportant);
+        }
 
+        strangerResponseDTO.setAllData(strangerInfoDTOList);
         strangerResponseDTO.setRate(String.valueOf(rate));
         return strangerResponseDTO;
     }
@@ -282,14 +377,14 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         if (null != warningTypeInfoList && warningTypeInfoList.size() > 0) {
             List<Integer> num = new ArrayList<>();
             for (int i = 0; i < warningTypeInfoList.size(); i++) {
-                int per=0;
+                int per = 0;
                 if (i == warningTypeInfoList.size() - 1) {
-                     per = 100;
+                    per = 100;
                     for (int j = 0; j < num.size(); j++) {
                         per = per - num.get(j);
                     }
                 } else {
-                     per = warningTypeInfoList.get(i).getAccount() * 100 / allTypeNum;
+                    per = warningTypeInfoList.get(i).getAccount() * 100 / allTypeNum;
                 }
                 WarningTypeDTO warningTypeDTO = new WarningTypeDTO(warningTypeInfoList.get(i).getCode(), warningTypeInfoList.get(i).getName(), String.valueOf(per));
                 warningTypeDTOList.add(warningTypeDTO);
@@ -361,23 +456,23 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
     public TerminalResponseDTO getTerminalInfo() {
         TerminalResponseDTO responseDTO = new TerminalResponseDTO();
         List<TerminalAmountDTO> terminalAmountDTOList = new ArrayList<>();
-        int healthySensorNum=terminalMapper.getTerminalLAmountByTypeAndStatus("sensor","1");
-        int unHealthySensorNum=terminalMapper.getTerminalLAmountByTypeAndStatus("sensor","0");
-        int healthyCameraNum=terminalMapper.getTerminalLAmountByTypeAndStatus("camera","1");
-        int unHealthyCameraNum=terminalMapper.getTerminalLAmountByTypeAndStatus("camera","0");
-        int all=healthySensorNum+unHealthySensorNum+healthyCameraNum+unHealthyCameraNum;
+        int healthySensorNum = terminalMapper.getTerminalLAmountByTypeAndStatus("sensor", "1");
+        int unHealthySensorNum = terminalMapper.getTerminalLAmountByTypeAndStatus("sensor", "0");
+        int healthyCameraNum = terminalMapper.getTerminalLAmountByTypeAndStatus("camera", "1");
+        int unHealthyCameraNum = terminalMapper.getTerminalLAmountByTypeAndStatus("camera", "0");
+        int all = healthySensorNum + unHealthySensorNum + healthyCameraNum + unHealthyCameraNum;
 
-        TerminalAmountDTO terminalAmountDTO1 = new TerminalAmountDTO(String.valueOf(healthyCameraNum+unHealthyCameraNum), "摄像头", "camera");
-        TerminalAmountDTO terminalAmountDTO2 = new TerminalAmountDTO(String.valueOf(healthySensorNum+unHealthySensorNum), "传感器", "sensor");
+        TerminalAmountDTO terminalAmountDTO1 = new TerminalAmountDTO(String.valueOf(healthyCameraNum + unHealthyCameraNum), "摄像头", "camera");
+        TerminalAmountDTO terminalAmountDTO2 = new TerminalAmountDTO(String.valueOf(healthySensorNum + unHealthySensorNum), "传感器", "sensor");
         terminalAmountDTOList.add(terminalAmountDTO1);
         terminalAmountDTOList.add(terminalAmountDTO2);
 
 
         List<TerminalHealthCheckDTO> terminalHealthCheckDTOList = new ArrayList<>();
-        TerminalHealthCheckDTO terminalHealthCheckDTO1 = new TerminalHealthCheckDTO("健康摄像头", 100*healthyCameraNum/all);
-        TerminalHealthCheckDTO terminalHealthCheckDTO2 = new TerminalHealthCheckDTO("非健康摄像头", 100*unHealthyCameraNum/all);
-        TerminalHealthCheckDTO terminalHealthCheckDTO3 = new TerminalHealthCheckDTO("健康传感器", 100*healthySensorNum/all);
-        TerminalHealthCheckDTO terminalHealthCheckDTO4 = new TerminalHealthCheckDTO("非健康传感器", 100-100*healthyCameraNum/all-100*unHealthyCameraNum/all-100*healthySensorNum/all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO1 = new TerminalHealthCheckDTO("健康摄像头", 100 * healthyCameraNum / all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO2 = new TerminalHealthCheckDTO("非健康摄像头", 100 * unHealthyCameraNum / all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO3 = new TerminalHealthCheckDTO("健康传感器", 100 * healthySensorNum / all);
+        TerminalHealthCheckDTO terminalHealthCheckDTO4 = new TerminalHealthCheckDTO("非健康传感器", 100 - 100 * healthyCameraNum / all - 100 * unHealthyCameraNum / all - 100 * healthySensorNum / all);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO1);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO2);
         terminalHealthCheckDTOList.add(terminalHealthCheckDTO3);
@@ -426,5 +521,106 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         monitorData.setMonitorType("");
         monitorData.setOriginDataTime(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT));
         return monitorData;
+    }
+
+
+    /**
+     * 处理陌生人图片，使前端能访问
+     *
+     * @param strangerInfoDTOList
+     */
+    public void doPictureForStranger(List<StrangerInfoDTO> strangerInfoDTOList) {
+        for (int i = 0; i < strangerInfoDTOList.size(); i++) {
+            //处理图片地址问题，后期改为fastdfs存储
+            String data = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getSnapUrlBak());
+            String bkgPictureName = strangerInfoDTOList.get(i).getSnapUrlPictureNameBak();
+            String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + bkgPictureName;
+            PictureUtil.GenerateImage(data, bkgUrlBak);
+            strangerInfoDTOList.get(i).setPicture(picturl + "stranger/" + bkgPictureName);
+
+
+            String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
+            String backPictureName = strangerInfoDTOList.get(i).getBkgUrlPictureNameBak();
+            String backUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + backPictureName;
+            PictureUtil.GenerateImage(backData, backUrlBak);
+            strangerInfoDTOList.get(i).setBkgUrl(picturl + "stranger/" + backPictureName);
+
+            //times
+            strangerInfoDTOList.get(i).setTimes(strangerInfoDTOList.get(i).getTotalSimilar() + "");
+            strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(), DPConstant.DATE_FORMAT));
+        }
+
+    }
+
+    public void doPictureForImportantPeople(List<ImportantPeopleDTO> importantPeopleDTOList) {
+        for (int i = 0; i < importantPeopleDTOList.size(); i++) {
+            //处理图片地址问题，后期改为fastdfs存储
+            String snapPictureName = importantPeopleDTOList.get(i).getSnapUrlPictureNameBak();
+            String snapUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/important/" + snapPictureName;
+
+            if (!PictureUtil.checkPictureExisted(snapUrlBak)) {
+                String snapPicturedata = PictureUtil.GetImageStr(importantPeopleDTOList.get(i).getSnapUrlBak());
+                PictureUtil.GenerateImage(snapPicturedata, snapUrlBak);
+            }
+            importantPeopleDTOList.get(i).setPicture(picturl + "important/" + snapPictureName);
+
+
+            String bkgPictureName = importantPeopleDTOList.get(i).getBkgUrlPictureNameBak();
+            String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/important/" + bkgPictureName;
+            if (!PictureUtil.checkPictureExisted(bkgUrlBak)) {
+                String bkgPictureData = PictureUtil.GetImageStr(importantPeopleDTOList.get(i).getBkgUrlBak());
+                PictureUtil.GenerateImage(bkgPictureData, bkgUrlBak);
+            }
+            importantPeopleDTOList.get(i).setPicture2(picturl + "stranger/" + bkgPictureName);
+
+            importantPeopleDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(importantPeopleDTOList.get(i).getEventTime(), DPConstant.DATE_FORMAT));
+        }
+
+    }
+
+    /**
+     * 调用海康接口"按条件查询重点人员事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+     * 数据查询最近7天
+     *
+     * @return
+     */
+    public String getImportantPeople(String startTime, String endTime, int similarity) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonArray.add("eca9e1993abe4488bacb875fd68e5935");
+        jsonObject.put("cameraIndexCodes", jsonArray);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        jsonObject.put("similarity", similarity);
+        jsonObject.put("pageNo", 1);
+        jsonObject.put("pageSize", 1000);
+        String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_, jsonObject);
+        return result;
+    }
+
+    /**
+     * 获取重点人员，人名与头像图片地址关系
+     *
+     * @return
+     */
+    public Map<String, String> getStandardNameAndPictureRelation() {
+        Map<String, String> nameAndFaceUrl = new HashMap<>();
+        if (StringUtils.isNotEmpty(namePictureRelation)) {
+            String[] relations = namePictureRelation.split(",");
+            if (relations != null && relations.length > 0) {
+                for (int i = 0; i < relations.length; i++) {
+                    if (relations[i] != null && relations[i].contains("@")) {
+                        String[] nameAndUrl = relations[i].split("@");
+                        try {
+                            String name = new String(nameAndUrl[0].getBytes("ISO8859-1"), "UTF-8");
+                            nameAndFaceUrl.put(name, picturl + "standard/" + nameAndUrl[1]);
+                        } catch (UnsupportedEncodingException e) {
+                            log.error("getStandardNameAndPictureRelation error when encode", e);
+                        }
+                    }
+                }
+            }
+        }
+        return nameAndFaceUrl;
     }
 }

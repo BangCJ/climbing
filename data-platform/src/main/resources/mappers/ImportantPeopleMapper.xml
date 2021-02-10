@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.ImportantPeopleMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.analysis.dto.ImportantPeopleDTO">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="bkg_url" jdbcType="VARCHAR" property="bkgUrl" />
+    <result column="snap_url" jdbcType="VARCHAR" property="snapUrl" />
+    <result column="bkg_url_bak" jdbcType="VARCHAR" property="bkgUrlBak" />
+    <result column="snap_url_bak" jdbcType="VARCHAR" property="snapUrlBak" />
+    <result column="bkg_url_picture_name_bak" jdbcType="VARCHAR" property="bkgUrlPictureNameBak" />
+    <result column="snap_url_picture_name_bak" jdbcType="VARCHAR" property="snapUrlPictureNameBak" />
+    <result column="total_similar" jdbcType="BIGINT" property="totalSimilar" />
+    <result column="camera_index_code" jdbcType="VARCHAR" property="cameraIndexcode" />
+    <result column="camera_name" jdbcType="VARCHAR" property="cameraName" />
+    <result column="device_index_code" jdbcType="VARCHAR" property="deviceIndexcode" />
+    <result column="device_name" jdbcType="VARCHAR" property="deviceName" />
+    <result column="gender" jdbcType="VARCHAR" property="gender" />
+    <result column="age" jdbcType="VARCHAR" property="age" />
+    <result column="glass" jdbcType="VARCHAR" property="glass" />
+    <result column="event_time" jdbcType="VARCHAR" property="eventTime" />
+    <result column="data_time" jdbcType="VARCHAR" property="dataTime" />
+    <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, code ,name,bkg_url,snap_url,bkg_url_bak,snap_url_bak,bkg_url_picture_name_bak,snap_url_picture_name_bak,total_similar,camera_index_code,camera_name,device_index_code,device_name,gender,age,glass,event_time,data_time,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+   code ,name,bkg_url,snap_url,bkg_url_bak,snap_url_bak,bkg_url_picture_name_bak,snap_url_picture_name_bak,total_similar,camera_index_code,camera_name,device_index_code,device_name,gender,age,glass,event_time,data_time,create_time,update_time
+  </sql>
+  <sql id="Select_Column_List">
+   code ,name,bkg_url,snap_url,bkg_url_bak,snap_url_bak,bkg_url_picture_name_bak,snap_url_picture_name_bak,total_similar,camera_index_code,camera_name,device_index_code,device_name,gender,age,glass,event_time,data_time,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    important_people_info
+  </sql>
+
+
+  <select id="getImportantPeopleDTO" parameterType="com.bang.ap.dp.analysis.dto.ImportantPeopleDTO" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+  <where>
+
+    <if test="bkgUrl != null">
+      and bkg_url =#{bkgUrl}
+    </if>
+    <if test="snapUrl != null">
+      and snap_url =#{snapUrl}
+    </if>
+
+  </where>
+  </select>
+
+  <select id="getImportantPeopleDTOByDataTime" parameterType="String" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <where>
+      <if test="dataTime != null">
+        and data_time > #{dataTime}
+      </if>
+    </where>
+  </select>
+
+  <select id="getTop10StrangerInfoDTO" parameterType="com.bang.ap.dp.analysis.dto.ImportantPeopleDTO" resultMap="BaseResultMap">
+    select
+    <include refid="Select_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <where>
+
+      <if test="dataTime != null">
+        and data_time =#{dataTime}
+      </if>
+
+    </where>
+    order by event_time desc
+    limit 10
+  </select>
+
+  <select id="getAccount" parameterType="String"  resultType="INTEGER">
+    select
+    count(*)
+    from
+    <include refid="Base_Table" />
+
+    <where>
+      data_time >= #{dataTime}
+
+      <if test="name != null">
+        and name =#{name}
+      </if>
+    </where>
+
+  </select>
+
+
+  <insert id="insertImportantPeopleDTOList" parameterType="java.util.List">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    <foreach collection="importantPeopleDTOList" item="attribute" index= "index" separator =",">
+    (
+    #{attribute.code,jdbcType=VARCHAR},
+    #{attribute.name,jdbcType=VARCHAR},
+    #{attribute.bkgUrl,jdbcType=VARCHAR},
+    #{attribute.snapUrl,jdbcType=VARCHAR},
+    #{attribute.bkgUrlBak,jdbcType=VARCHAR},
+    #{attribute.snapUrlBak,jdbcType=VARCHAR},
+    #{attribute.bkgUrlPictureNameBak,jdbcType=VARCHAR},
+    #{attribute.snapUrlPictureNameBak,jdbcType=VARCHAR},
+    #{attribute.totalSimilar,jdbcType=BIGINT},
+    #{attribute.cameraIndexcode,jdbcType=VARCHAR},
+    #{attribute.cameraName,jdbcType=VARCHAR},
+    #{attribute.deviceIndexcode,jdbcType=VARCHAR},
+    #{attribute.deviceName,jdbcType=VARCHAR},
+    #{attribute.gender,jdbcType=VARCHAR},
+    #{attribute.age,jdbcType=VARCHAR},
+    #{attribute.glass,jdbcType=VARCHAR},
+    #{attribute.eventTime,jdbcType=VARCHAR},
+    #{attribute.dataTime,jdbcType=VARCHAR},
+    #{attribute.createTime,jdbcType=TIMESTAMP},
+    #{attribute.updateTime,jdbcType=TIMESTAMP}
+    )
+    </foreach>
+  </insert>
+
+
+
+
+</mapper>

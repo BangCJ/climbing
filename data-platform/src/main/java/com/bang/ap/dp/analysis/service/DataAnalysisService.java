@@ -13,9 +13,9 @@ public interface DataAnalysisService {
 
     int getRooUserdRateInOneWeek(int rooId);
 
-    HighFrequenceResponseDTO  getHighFrequenceInfo();
+    HighFrequenceResponseDTO getHighFrequenceInfo();
 
-    StrangerResponseDTO getStrangerInfo ();
+    StrangerResponseDTO getStrangerInfo();
 
     String getBispectrumUrl();
 

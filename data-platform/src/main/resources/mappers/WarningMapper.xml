@@ -8,15 +8,16 @@
     <result column="warning_type" jdbcType="VARCHAR" property="warningType" />
     <result column="warning_time" jdbcType="VARCHAR" property="warningTime" />
     <result column="warning_area" jdbcType="VARCHAR" property="warningArea" />
+    <result column="warning_attach" jdbcType="VARCHAR" property="warningAttach" />
     <result column="create_time" jdbcType="TIMESTAMP" property="createTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
   </resultMap>
 
   <sql id="Base_Column_List">
-    id, code ,warning_content ,warning_type,warning_time,warning_area,create_time,update_time
+    id, code ,warning_content ,warning_type,warning_time,warning_area,warning_attach,create_time,update_time
   </sql>
   <sql id="Add_Column_List">
-     code ,warning_content ,warning_type,warning_time,warning_area,create_time,update_time
+     code ,warning_content ,warning_type,warning_time,warning_area,warning_attach,create_time,update_time
   </sql>
   <sql id="Base_Table">
     warning_info
@@ -46,6 +47,7 @@
     #{warningType,jdbcType=VARCHAR},
     #{warningTime,jdbcType=VARCHAR},
     #{warningArea,jdbcType=VARCHAR},
+    #{warningAttach,jdbcType=VARCHAR},
     #{createTime,jdbcType=TIMESTAMP},
     #{updateTime,jdbcType=TIMESTAMP}
     )

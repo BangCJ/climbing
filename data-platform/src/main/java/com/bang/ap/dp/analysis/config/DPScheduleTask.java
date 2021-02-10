@@ -22,8 +22,8 @@ public class DPScheduleTask {
     private HikSensorService hikSensorService;
 
     @Scheduled(cron = "0 15 0 ? * *")
-    public void checkInfoAboutRoom() {
-        log.info("data  platform  start to  do job ： checkInfoAboutRoom() !!!!!!!!!!");
+    public void checkDailyData() {
+        log.error("data  platform  start to  do job ： checkDailyData() !!!!!!!!!!");
         try {
             //do things about frequence
             dataPesistenceService.saveFrequenceInRoom(new Date());
@@ -31,6 +31,8 @@ public class DPScheduleTask {
             dataPesistenceService.saveRoomUseTimeLength(new Date());
             //do things about stranger
             dataPesistenceService.saveStrangerInfo(new Date());
+            //do things about stranger
+            dataPesistenceService.saveImportantPeopleInfo(new Date());
 
         } catch (Exception e) {
             log.error(" error occured when data platform  tried to  do job checkInfoAboutRoom ");

@@ -55,11 +55,13 @@ public class BaseController {
     public JSONObject runScheduleTask() {
         try {
             //do things about frequence
-            dataPesistenceService.saveFrequenceInRoom(new Date());
+            //dataPesistenceService.saveFrequenceInRoom(new Date());
             //do things about used time length info
-            dataPesistenceService.saveRoomUseTimeLength(new Date());
+            //dataPesistenceService.saveRoomUseTimeLength(new Date());
             //do things about stranger
-            dataPesistenceService.saveStrangerInfo(new Date());
+           // dataPesistenceService.saveStrangerInfo(new Date());
+            //do things about stranger
+            dataPesistenceService.saveImportantPeopleInfo(new Date());
             return null;
         } catch (Exception e) {
             log.error(e.getMessage(), e);

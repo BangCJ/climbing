@@ -1,10 +1,9 @@
 package com.bang.ap.dp.analysis.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.bang.ap.dp.analysis.dto.FrequenceInRoomDTO;
-import com.bang.ap.dp.analysis.dto.RoomUseTimeDTO;
-import com.bang.ap.dp.analysis.dto.StrangerInfoDTO;
+import com.bang.ap.dp.analysis.dto.*;
 import com.bang.ap.dp.analysis.service.DataPesistenceService;
 import com.bang.ap.dp.cons.DPConstant;
 import com.bang.ap.dp.cons.UrlConstant;
@@ -12,6 +11,7 @@ import com.bang.ap.dp.utils.DPTimeUtil;
 import com.bang.ap.dp.utils.HikvisionUtil;
 import com.bang.ap.dp.utils.PictureUtil;
 import com.bang.ap.dp.web.mapper.FrequenceInRoomMapper;
+import com.bang.ap.dp.web.mapper.ImportantPeopleMapper;
 import com.bang.ap.dp.web.mapper.RoomUsedTimeLengthMapper;
 import com.bang.ap.dp.web.mapper.StrangerInfoMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +39,9 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
     @Autowired
     private StrangerInfoMapper strangerInfoMapper;
+
+    @Autowired
+    private ImportantPeopleMapper importantPeopleMapper;
 
 
     @Override
@@ -84,10 +87,10 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
             List<FrequenceInRoomDTO> repeatCheck = frequenceInRoomMapper.getFrequenceInRoomDTO(param);
             if (null != repeatCheck && repeatCheck.size() > 0) {
                 frequenceInRoomMapper.updateFrequenceInRoomDTO(frequenceInRoomDTO);
-                log.info("saveFrequenceInRoom,当前存在当天{}数据，做更新操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+                log.info("saveFrequenceInRoom,当前存在当天{}数据，做更新操作", DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
             } else {
                 frequenceInRoomMapper.insertFrequenceInRoomDTO(frequenceInRoomDTO);
-                log.info("saveFrequenceInRoom,当前不存在当天{}数据，做新增操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+                log.info("saveFrequenceInRoom,当前不存在当天{}数据，做新增操作", DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -175,11 +178,11 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         List<RoomUseTimeDTO> repeatDataCheck = roomUsedTimeLengthMapper.getRoomUseTimeDTO(param);
         if (null != repeatDataCheck && repeatDataCheck.size() > 0) {
             roomUsedTimeLengthMapper.updateRoomUseTimeDTO(roomUseTimeDTO);
-            log.info("saveRoomUseTimeLength,当前存在当天{}数据，做更新操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+            log.info("saveRoomUseTimeLength,当前存在当天{}数据，做更新操作", DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
 
         } else {
             roomUsedTimeLengthMapper.insertRoomUseTimeDTO(roomUseTimeDTO);
-            log.info("saveRoomUseTimeLength,当前不存在当天{}数据，做新增操作",DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
+            log.info("saveRoomUseTimeLength,当前不存在当天{}数据，做新增操作", DPTimeUtil.getYesterday(DPConstant.DATE_FORMAT_DATETYPE));
 
         }
 
@@ -275,14 +278,14 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
                     strangerInfoParam.setDataTime(DPTimeUtil.formatDate(DPTimeUtil.getYesterday(), DPConstant.DATE_FORMAT_DATETYPE));
                     List<StrangerInfoDTO> checkList = strangerInfoMapper.getStrangerInfoDTO(strangerInfoParam);
                     if (checkList != null && checkList.size() > 0) {
-                        log.info("saveStrangerInfo:持久化时，数据库存在当天{}数据,不做其他操作",DPTimeUtil.getYesterday().toString());
+                        log.info("saveStrangerInfo:持久化时，数据库存在当天{}数据,不做其他操作", DPTimeUtil.getYesterday().toString());
                         return;
                     } else {
                         strangerInfoMapper.insertStrangerInfoDTOList(strangerInfoDTOList);
-                        log.info("saveStrangerInfo:持久化时，数据库不存在当天{}数据,做新增操作",DPTimeUtil.getYesterday().toString());
+                        log.info("saveStrangerInfo:持久化时，数据库不存在当天{}数据,做新增操作", DPTimeUtil.getYesterday().toString());
                     }
-                }else{
-                    log.info("saveStrangerInfo:持久化时，从Hil获取当天{}数据为空,不做其他操作",DPTimeUtil.getYesterday().toString());
+                } else {
+                    log.info("saveStrangerInfo:持久化时，从Hil获取当天{}数据为空,不做其他操作", DPTimeUtil.getYesterday().toString());
                 }
             }
         } catch (Exception e) {
@@ -291,4 +294,107 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
 
     }
+
+    /**
+     * 保存重点人员信息
+     *
+     * @param date
+     */
+    @Override
+    public synchronized void saveImportantPeopleInfo(Date date) {
+        log.info("schedule4: start to saveImportantPeopleInfo !");
+        try {
+            //调用海康接口"按条件查询重点人员"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+            String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-21)), DPConstant.DATE_FORMAT);
+            String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
+            String result = this.getImportantPeople(startTime, endTime, 15, "eca9e1993abe4488bacb875fd68e5935");
+            JSONObject resultObject = JSONObject.parseObject(result);
+            if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
+                JSONArray jsonArrayList = resultObject.getJSONObject("data").getJSONArray("list");
+                if (jsonArrayList != null && jsonArrayList.size() > 0) {
+                    List<ImportantPeopleDTO> importantPeopleDTOList = new ArrayList<>();
+                    for (int i = 0; i < jsonArrayList.size(); i++) {
+                        JSONObject targetObject = jsonArrayList.getJSONObject(i).getJSONArray("targetInfoList").getJSONObject(0);
+                        ImportantPeopleDTO importantPeopleDTO = jsonArrayList.getJSONObject(i).getObject("snapInfo", ImportantPeopleDTO.class);
+                        //去重，准备持久化
+                        List<ImportantPeopleDTO> checkImportantPeopleDTOS = importantPeopleMapper.getImportantPeopleDTO(importantPeopleDTO);
+                        if (null == checkImportantPeopleDTOS || checkImportantPeopleDTOS.size() == 0) {
+                            importantPeopleDTO.setCreateTime(new Date());
+                            importantPeopleDTO.setUpdateTime(new Date());
+                            importantPeopleDTO.setDataTime(DPTimeUtil.isoStr2utc8Str(importantPeopleDTO.getEventTime(), DPConstant.DATE_FORMAT_DATETYPE));
+                            importantPeopleDTOList.add(importantPeopleDTO);
+                        } else {
+                            log.warn("saveImportantPeopleInfo 存在重复数据{}", JSON.toJSONString(importantPeopleDTO));
+                            continue;
+                        }
+                        //处理snapInfo.图片信息
+                        String targetUrlInTomcat = this.getClass().getClassLoader().getResource("static").getFile() + "picture/important/";
+                        PictureGeneratorInfo bkgInfo = this.doPictureGenerate(importantPeopleDTO.getBkgUrl(), targetUrlInTomcat, "IMP");
+                        PictureGeneratorInfo snapInfo = this.doPictureGenerate(importantPeopleDTO.getSnapUrl(), targetUrlInTomcat, "IMP");
+                        importantPeopleDTO.setBkgUrlBak(bkgInfo.getUrl());
+                        importantPeopleDTO.setBkgUrlPictureNameBak(bkgInfo.getName());
+                        importantPeopleDTO.setSnapUrlBak(snapInfo.getUrl());
+                        importantPeopleDTO.setSnapUrlPictureNameBak(snapInfo.getName());
+                        importantPeopleDTO.setPicture(snapInfo.getUrlInTomcat());
+
+                        //处理targetInfo
+                        importantPeopleDTO.setName(targetObject.getString("name"));
+                    }
+                    //数据持久化
+                    if (importantPeopleDTOList.size() > 0) {
+                        importantPeopleMapper.insertImportantPeopleDTOList(importantPeopleDTOList);
+                    }
+
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+
+    }
+
+    /**
+     * 图片信息另存为
+     *
+     * @param pictureUrlInHik
+     * @param type
+     * @return
+     */
+    private PictureGeneratorInfo doPictureGenerate(String pictureUrlInHik, String targerUrlInTomcat, String type) {
+        JSONObject pictureParam = new JSONObject();
+        pictureParam.put("url", pictureUrlInHik);
+        String pactureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, pictureParam);
+        JSONObject pictureDownObject = JSONObject.parseObject(pactureDown);
+        String data = pictureDownObject.get("data").toString();
+        String bkgPictureName = PictureUtil.getPictureName(type);
+        String bkgUrlBak = "/data/data-platform/picture/" + bkgPictureName;
+        PictureUtil.GenerateImage(data, bkgUrlBak);
+        if (StringUtils.isNotEmpty(targerUrlInTomcat)) {
+            PictureUtil.GenerateImage(data, targerUrlInTomcat + bkgPictureName);
+        }
+        PictureGeneratorInfo pictureGeneratorInfo = new PictureGeneratorInfo(bkgPictureName, bkgUrlBak, targerUrlInTomcat + bkgPictureName);
+        return pictureGeneratorInfo;
+    }
+
+    /**
+     * 调用海康接口"按条件查询重点人员事件"获取数据，
+     * 指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+     * 数据查询最近7天
+     *
+     * @return
+     */
+    private String getImportantPeople(String startTime, String endTime, int similarity, String cameraIndexCode) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonArray.add(cameraIndexCode);
+        jsonObject.put("cameraIndexCodes", jsonArray);
+        jsonObject.put("pageNo", 1);
+        jsonObject.put("pageSize", 1000);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        jsonObject.put("similarity", similarity);
+        String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_IMPORTANT_, jsonObject);
+        return result;
+    }
+
 }

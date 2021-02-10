@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+
+/**
+ * 此类中方法返回测试数据
+ */
+
 @Service
 @ConditionalOnProperty(prefix = "ap", name = "test-enable", havingValue = "true", matchIfMissing = false)
 public class DataAnalysisServiceImplByTestData implements DataAnalysisService {

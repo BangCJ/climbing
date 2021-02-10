@@ -10,4 +10,6 @@ public interface DataPesistenceService {
 
     void saveStrangerInfo(Date date);
 
+    void saveImportantPeopleInfo(Date date);
+
 }

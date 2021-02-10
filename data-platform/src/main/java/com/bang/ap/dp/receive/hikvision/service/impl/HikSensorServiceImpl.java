@@ -79,6 +79,7 @@ public class HikSensorServiceImpl implements HikSensorService {
 
             }
         } catch (Exception e) {
+
            log.error("保存海康传感器数据失败",e);
             return false;
         }
