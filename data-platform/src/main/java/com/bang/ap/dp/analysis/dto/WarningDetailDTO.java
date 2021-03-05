@@ -14,4 +14,5 @@ public class WarningDetailDTO {
     public String warningType;
     public String warningInfo;
     public String time;
+    public String warningAttach;
 }

@@ -66,6 +66,21 @@
     </where>
   </select>
 
+  <select id="getMonitorDataByMonitorTypeAndOriginDataTime" parameterType="String" resultMap="BaseResultMap">
+    SELECT
+    <include refid="Base_Column_List" />
+    FROM
+    <include refid="Base_Table" />
+    <where>
+      <if test="monitorType != null and monitorType !='' ">
+        and monitor_type = #{monitorType}
+      </if>
+      <if test="originDataTime != null and originDataTime !='' ">
+        and origin_data_time = #{originDataTime}
+      </if>
+    </where>
+  </select>
+
   <insert id="addMonitorData" parameterType="com.bang.ap.dp.web.entity.MonitorData">
     insert into
       <include refid="Base_Table" />

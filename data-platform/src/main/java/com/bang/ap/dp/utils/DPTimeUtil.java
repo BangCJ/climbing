@@ -99,6 +99,13 @@ public class DPTimeUtil {
         Date yesterday = c.getTime();
         return yesterday;
     }
+    public static Date getYesterday( Date today) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(today);
+        c.add(Calendar.DAY_OF_MONTH, -1);
+        Date yesterday = c.getTime();
+        return yesterday;
+    }
 
     public static Date get7DaysAgo() {
         Date today = new Date();

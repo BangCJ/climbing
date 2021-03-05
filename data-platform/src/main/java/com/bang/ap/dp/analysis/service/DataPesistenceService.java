@@ -12,4 +12,8 @@ public interface DataPesistenceService {
 
     void saveImportantPeopleInfo(Date date);
 
+    void asyncSaveStranger(Date date);
+
+    void asyncSaveImportantPeople(Date date);
+
 }

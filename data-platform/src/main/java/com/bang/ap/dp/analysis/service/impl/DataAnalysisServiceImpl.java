@@ -142,9 +142,9 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                     } else {
                         nameAndTimesMap.put(name, nameAndTimesMap.get(name) + 1);
                     }
-                    //处理tomcat重的图片，供前端访问
+                    //处理tomcat中的图片，供前端访问
                     String pictureUrl = this.doPictureGenerateInTomcat("picture/important/", imp);
-                    imp.setPicture(picturl+"important/"+imp.getSnapUrlPictureNameBak());
+                    imp.setPicture(picturl + "important/" + imp.getSnapUrlPictureNameBak());
                     imp.setPicture2(nameAndFaceUrl.get(name));
                     imp.setEventTime(DPTimeUtil.isoStr2utc8Str(imp.getEventTime(), DPConstant.DATE_FORMAT));
 
@@ -408,7 +408,7 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
             dailyAmountDTO.setAmount(String.valueOf(amount));
             dailyAmountDTO.setDate(toDayString);
             dailyAmountDTOList.add(dailyAmountDTO);
-            today = DPTimeUtil.getYesterday();
+            today = DPTimeUtil.getYesterday(today);
         }
         allAmount = warningMapper.selectAllAmount();
 
@@ -420,7 +420,7 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
         List<WarningInfo> warningInfoList = warningMapper.getLastWarningData();
         if (null != warningInfoList && warningInfoList.size() > 0) {
             warningInfoList.forEach(item -> {
-                warningDetailDTOList.add(new WarningDetailDTO(item.getWarningArea(), WarningTypeConst.warningNameMap.get(item.getWarningType()), item.getWarningContent(), DPTimeUtil.formatDate(item.getCreateTime())));
+                warningDetailDTOList.add(new WarningDetailDTO(item.getWarningArea(), WarningTypeConst.warningNameMap.get(item.getWarningType()), item.getWarningContent(), DPTimeUtil.formatDate(item.getCreateTime()), item.getWarningAttach()));
             });
         }
 
@@ -495,6 +495,8 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
                 add("wind");
                 add("voicePress");
                 add("wave");
+                add("residualCurrent");
+                add("electricalTemperature");
             }
         };
         try {
@@ -526,32 +528,47 @@ public class DataAnalysisServiceImpl implements DataAnalysisService {
 
     /**
      * 处理陌生人图片，使前端能访问
+     * 临时方案，后期改为fastdfs存储
      *
      * @param strangerInfoDTOList
      */
     public void doPictureForStranger(List<StrangerInfoDTO> strangerInfoDTOList) {
         for (int i = 0; i < strangerInfoDTOList.size(); i++) {
-            //处理图片地址问题，后期改为fastdfs存储
-            String data = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getSnapUrlBak());
-            String bkgPictureName = strangerInfoDTOList.get(i).getSnapUrlPictureNameBak();
-            String bkgUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + bkgPictureName;
-            PictureUtil.GenerateImage(data, bkgUrlBak);
-            strangerInfoDTOList.get(i).setPicture(picturl + "stranger/" + bkgPictureName);
+            //处理snap
+            String snapPictureName = strangerInfoDTOList.get(i).getSnapUrlPictureNameBak();
+            String snapUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + snapPictureName;
 
+            if (!PictureUtil.checkPictureExisted(snapUrlBak)) {
+                String snapData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getSnapUrlBak());
+                PictureUtil.GenerateImage(snapData, snapUrlBak);
+            }
+            strangerInfoDTOList.get(i).setSnapUrl(picturl + "stranger/" + snapPictureName);
 
-            String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
+            //处理bkg
             String backPictureName = strangerInfoDTOList.get(i).getBkgUrlPictureNameBak();
             String backUrlBak = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/" + backPictureName;
-            PictureUtil.GenerateImage(backData, backUrlBak);
+
+            if (!PictureUtil.checkPictureExisted(backUrlBak)) {
+                String backData = PictureUtil.GetImageStr(strangerInfoDTOList.get(i).getBkgUrlBak());
+                PictureUtil.GenerateImage(backData, backUrlBak);
+            }
+
             strangerInfoDTOList.get(i).setBkgUrl(picturl + "stranger/" + backPictureName);
 
-            //times
+            //处理times
             strangerInfoDTOList.get(i).setTimes(strangerInfoDTOList.get(i).getTotalSimilar() + "");
             strangerInfoDTOList.get(i).setEventTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTOList.get(i).getEventTime(), DPConstant.DATE_FORMAT));
         }
 
     }
 
+
+    /**
+     * 处理重点人员图片，使前端能访问
+     * 临时方案，后期改为fastdfs存储
+     *
+     * @param importantPeopleDTOList
+     */
     public void doPictureForImportantPeople(List<ImportantPeopleDTO> importantPeopleDTOList) {
         for (int i = 0; i < importantPeopleDTOList.size(); i++) {
             //处理图片地址问题，后期改为fastdfs存储

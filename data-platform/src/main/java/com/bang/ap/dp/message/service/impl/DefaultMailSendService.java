@@ -10,8 +10,11 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import javax.activation.DataSource;
+import javax.activation.URLDataSource;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
+import java.net.URL;
 
 @Service
 @Slf4j
@@ -34,15 +37,16 @@ public class DefaultMailSendService implements IMailSendService {
 
     /**
      * 简单文本邮件
-     * @param to 收件人
+     *
+     * @param to      收件人
      * @param subject 主题
      * @param content 内容
      */
     @Override
     public void sendSimpleMail(String to, String subject, String content) {
-        if (!isEmailEnable){
+        if (!isEmailEnable) {
             log.error("邮件服务未启用");
-            return ;
+            return;
         }
         //创建SimpleMailMessage对象
         SimpleMailMessage message = new SimpleMailMessage();
@@ -56,11 +60,13 @@ public class DefaultMailSendService implements IMailSendService {
         message.setText(content);
         //发送邮件
         mailSender.send(message);
+        log.info("简单文本邮件已经发送。TO:{}, Content:{}", to, content);
     }
 
     /**
      * html邮件
-     * @param to 收件人
+     *
+     * @param to      收件人
      * @param subject 主题
      * @param content 内容
      */
@@ -74,7 +80,7 @@ public class DefaultMailSendService implements IMailSendService {
             //邮件发送人
             messageHelper.setFrom(from);
             //邮件接收人
-            messageHelper.setTo(subject);
+            messageHelper.setTo(to);
             //邮件主题
             message.setSubject(subject);
             //邮件内容，html格式
@@ -82,7 +88,7 @@ public class DefaultMailSendService implements IMailSendService {
             //发送
             mailSender.send(message);
             //日志信息
-            log.info("邮件已经发送。");
+            log.info("html邮件已经发送。TO:{}, Content:{}", to, content);
         } catch (Exception e) {
             log.error("发送邮件时发生异常！", e);
         }
@@ -90,9 +96,10 @@ public class DefaultMailSendService implements IMailSendService {
 
     /**
      * 带附件的邮件
-     * @param to 收件人
-     * @param subject 主题
-     * @param content 内容
+     *
+     * @param to       收件人
+     * @param subject  主题
+     * @param content  内容
      * @param filePath 附件
      */
     @Override
@@ -110,11 +117,39 @@ public class DefaultMailSendService implements IMailSendService {
             helper.addAttachment(fileName, file);
             mailSender.send(message);
             //日志信息
-            log.info("邮件已经发送。");
+            log.info("带附件的邮件已经发送。TO:{}, Content:{}", to, content);
         } catch (Exception e) {
             log.error("发送邮件时发生异常！", e);
         }
 
+    }
+
+    /**
+     * 带附件的邮件
+     *
+     * @param to      收件人
+     * @param subject 主题
+     * @param content 内容
+     * @param url     附件网络地址
+     */
+    @Override
+    public void sendAttachmentsMailFromNetWork(String to, String subject, String content, String url) {
+        MimeMessage message = mailSender.createMimeMessage();
+        try {
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(from);
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(content, true);
+            URL fileUrl = new URL(url);
+            DataSource dataSource = new URLDataSource(fileUrl);
+            helper.addAttachment("attach.png", dataSource);
+            mailSender.send(message);
+            //日志信息
+            log.info("带附件的邮件已经发送。TO:{}, Content:{} ,url:{}", to, content, url);
+        } catch (Exception e) {
+            log.error("发送邮件时发生异常！", e);
+        }
 
     }
 }

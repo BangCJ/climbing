@@ -17,16 +17,20 @@ import com.bang.ap.dp.web.mapper.StrangerInfoMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Slf4j
 public class DataPersistenceServiceImpl implements DataPesistenceService {
+
+    @Value("${ap.time.length:-1}")
+    private int timeLength;
 
     @Autowired
     HikvisionUtil hikvisionUtil;
@@ -186,111 +190,56 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
 
         }
 
-
     }
 
     @Override
-    public void saveStrangerInfo(Date date) {
-        log.info("schedule3: start to saveStrangerInfo !");
-
-        //调用海康接口"按条件查询陌生人事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
-        String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-1)), DPConstant.DATE_FORMAT);
-        String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
-        JSONArray jsonArray = new JSONArray();
-        JSONObject jsonObject = new JSONObject();
-        jsonArray.add("eca9e1993abe4488bacb875fd68e5935");
-        jsonObject.put("cameraIndexCodes", jsonArray);
-        jsonObject.put("startTime", startTime);
-        jsonObject.put("endTime", endTime);
-        jsonObject.put("pageNo", 1);
-        jsonObject.put("pageSize", 1000);
+    public synchronized void saveStrangerInfo(Date date) {
+        log.info("schedule3: start to saveStrangerInfo ! timeLenth={}", timeLength);
         List<StrangerInfoDTO> strangerInfoDTOList = new ArrayList<>();
-
         try {
-            String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_STRANGE_, jsonObject);
+            //调用海康接口"按条件查询陌生人事件"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+            String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(timeLength)), DPConstant.DATE_FORMAT);
+            String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(date), DPConstant.DATE_FORMAT);
+            String result = this.getStrangerFromHik(startTime, endTime, "eca9e1993abe4488bacb875fd68e5935");
             JSONObject resultObject = JSONObject.parseObject(result);
             if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
-                JSONObject dataObject = (JSONObject) resultObject.get("data");
-                JSONArray jsonArrayList = (JSONArray) dataObject.get("list");
+                JSONArray jsonArrayList = resultObject.getJSONObject("data").getJSONArray("list");
                 if (jsonArrayList != null && jsonArrayList.size() > 0) {
-
-
                     for (int i = 0; i < jsonArrayList.size(); i++) {
-                        StrangerInfoDTO strangerInfoDTO = new StrangerInfoDTO();
-                        strangerInfoDTO = jsonArrayList.getObject(i, StrangerInfoDTO.class);
-                        JSONObject pictureParam = new JSONObject();
-                        pictureParam.put("url", strangerInfoDTO.getBkgUrl());
-                        //处理图片地址
-                        String pactureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, pictureParam);
-                        JSONObject pictureDownObject = JSONObject.parseObject(pactureDown);
-                        String data = pictureDownObject.get("data").toString();
-                        String bkgPictureName = UUID.randomUUID().toString() + ".jpg";
-                        String bkgUrlBak = "/data/data-platform/picture/" + bkgPictureName;
-                        PictureUtil.GenerateImage(data, bkgUrlBak);
-                        strangerInfoDTO.setBkgUrlBak(bkgUrlBak);
-                        strangerInfoDTO.setBkgUrlPictureNameBak(bkgPictureName);
-                        //strangerInfoDTO.setBkgData(data);
+                        StrangerInfoDTO strangerInfoDTO = jsonArrayList.getObject(i, StrangerInfoDTO.class);
 
-
-                        JSONObject snapPictureParam = new JSONObject();
-                        snapPictureParam.put("url", strangerInfoDTO.getSnapUrl());
-                        //处理snap图片地址
-                        String snapPictureDown = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_DOWN_, snapPictureParam);
-                        String snapData = JSONObject.parseObject(snapPictureDown).get("data").toString();
-                        String snapPictureName = UUID.randomUUID().toString() + ".jpg";
-                        String snapUrlBak = "/data/data-platform/picture/" + bkgPictureName;
-                        PictureUtil.GenerateImage(snapData, snapUrlBak);
-                        strangerInfoDTO.setSnapUrlBak(snapUrlBak);
-                        strangerInfoDTO.setSnapUrlPictureNameBak(snapPictureName);
-
-                        //strangerInfoDTO.setSnapData(snapData);
-
-
-                        //处理以图搜图
-                        JSONObject facePicBinaryJSONObject = new JSONObject();
-                        facePicBinaryJSONObject.put("facePicBinaryData", snapData);
-                        facePicBinaryJSONObject.put("pageNo", 1);
-                        facePicBinaryJSONObject.put("pageSize", 20);
-                        facePicBinaryJSONObject.put("searchNum", 50);
-                        facePicBinaryJSONObject.put("startTime", startTime);
-                        facePicBinaryJSONObject.put("endTime", endTime);
-                        facePicBinaryJSONObject.put("minSimilarity", 50);
-                        facePicBinaryJSONObject.put("maxSimilarity", 100);
-
-                        String facePicBinaryResult = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_PICTURE_CAPTURESEARCH, facePicBinaryJSONObject);
-                        JSONObject facePicBinaryResultObject = JSONObject.parseObject(facePicBinaryResult);
-                        if (null != facePicBinaryResultObject.get("msg") && "success".equals(facePicBinaryResultObject.get("msg"))) {
-                            int total = facePicBinaryResultObject.getJSONObject("data").getInteger("total");
-                            strangerInfoDTO.setTotalSimilar(total);
+                        /*去重，准备持久化*/
+                        //根据 bkg_url+snap_url查询陌生人信息,如果存在则跳过
+                        List<StrangerInfoDTO> checkStrangerDTOS = strangerInfoMapper.getStrangerInfoDTO(strangerInfoDTO);
+                        if (null == checkStrangerDTOS || checkStrangerDTOS.size() == 0) {
+                            strangerInfoDTO.setDataTime(DPTimeUtil.isoStr2utc8Str(strangerInfoDTO.getEventTime(), DPConstant.DATE_FORMAT_DATETYPE));
+                            strangerInfoDTO.setCreateTime(new Date());
+                            strangerInfoDTO.setUpdateTime(new Date());
+                            strangerInfoDTOList.add(strangerInfoDTO);
+                        } else {
+                            log.warn("saveStrangerInfo 存在重复数据{}", JSON.toJSONString(strangerInfoDTO));
+                            continue;
                         }
-                        strangerInfoDTO.setDataTime(DPTimeUtil.formatDate(date, DPConstant.DATE_FORMAT_DATETYPE));
 
-                        strangerInfoDTO.setCreateTime(new Date());
-                        strangerInfoDTO.setUpdateTime(new Date());
-
-                        strangerInfoDTOList.add(strangerInfoDTO);
-
+                        /*图片另存为，在服务器固定地址和tomcat下都生成所需图片备份*/
+                        String targetUrlInTomcat = this.getClass().getClassLoader().getResource("static").getFile() + "picture/stranger/";
+                        PictureGeneratorInfo bkgInfo = this.doPictureGenerate(strangerInfoDTO.getBkgUrl(), targetUrlInTomcat, "Stranger");
+                        PictureGeneratorInfo snapInfo = this.doPictureGenerate(strangerInfoDTO.getSnapUrl(), targetUrlInTomcat, "Stranger");
+                        strangerInfoDTO.setBkgUrlBak(bkgInfo.getUrl());
+                        strangerInfoDTO.setBkgUrlPictureNameBak(bkgInfo.getName());
+                        strangerInfoDTO.setSnapUrlBak(snapInfo.getUrl());
+                        strangerInfoDTO.setSnapUrlPictureNameBak(snapInfo.getName());
                     }
                 }
                 //写库
                 if (strangerInfoDTOList.size() > 0) {
-                    StrangerInfoDTO strangerInfoParam = new StrangerInfoDTO();
-                    strangerInfoParam.setDataTime(DPTimeUtil.formatDate(DPTimeUtil.getYesterday(), DPConstant.DATE_FORMAT_DATETYPE));
-                    List<StrangerInfoDTO> checkList = strangerInfoMapper.getStrangerInfoDTO(strangerInfoParam);
-                    if (checkList != null && checkList.size() > 0) {
-                        log.info("saveStrangerInfo:持久化时，数据库存在当天{}数据,不做其他操作", DPTimeUtil.getYesterday().toString());
-                        return;
-                    } else {
-                        strangerInfoMapper.insertStrangerInfoDTOList(strangerInfoDTOList);
-                        log.info("saveStrangerInfo:持久化时，数据库不存在当天{}数据,做新增操作", DPTimeUtil.getYesterday().toString());
-                    }
-                } else {
-                    log.info("saveStrangerInfo:持久化时，从Hil获取当天{}数据为空,不做其他操作", DPTimeUtil.getYesterday().toString());
+                    strangerInfoMapper.insertStrangerInfoDTOList(strangerInfoDTOList);
                 }
             }
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+        log.info("schedule3: end to saveStrangerInfo !");
 
 
     }
@@ -302,11 +251,11 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
      */
     @Override
     public synchronized void saveImportantPeopleInfo(Date date) {
-        log.info("schedule4: start to saveImportantPeopleInfo !");
+        log.info("schedule4: start to saveImportantPeopleInfo !timeLenth={}", timeLength);
         try {
             //调用海康接口"按条件查询重点人员"获取数据，指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
-            String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(-21)), DPConstant.DATE_FORMAT);
-            String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(new Date()), DPConstant.DATE_FORMAT);
+            String startTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(DPTimeUtil.getNDaysAgo(timeLength)), DPConstant.DATE_FORMAT);
+            String endTime = DPTimeUtil.utc8Str2IsoStr(DPTimeUtil.formatDate(date), DPConstant.DATE_FORMAT);
             String result = this.getImportantPeople(startTime, endTime, 15, "eca9e1993abe4488bacb875fd68e5935");
             JSONObject resultObject = JSONObject.parseObject(result);
             if (null != resultObject.get("msg") && "success".equals(resultObject.get("msg"))) {
@@ -350,6 +299,8 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+        log.info("schedule4: end to saveImportantPeopleInfo !");
+
 
     }
 
@@ -368,8 +319,10 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         String data = pictureDownObject.get("data").toString();
         String bkgPictureName = PictureUtil.getPictureName(type);
         String bkgUrlBak = "/data/data-platform/picture/" + bkgPictureName;
+        //在服务器上生成备份图片
         PictureUtil.GenerateImage(data, bkgUrlBak);
         if (StringUtils.isNotEmpty(targerUrlInTomcat)) {
+            //在tomcat下生成备份文件
             PictureUtil.GenerateImage(data, targerUrlInTomcat + bkgPictureName);
         }
         PictureGeneratorInfo pictureGeneratorInfo = new PictureGeneratorInfo(bkgPictureName, bkgUrlBak, targerUrlInTomcat + bkgPictureName);
@@ -397,4 +350,39 @@ public class DataPersistenceServiceImpl implements DataPesistenceService {
         return result;
     }
 
+    /**
+     * 调用海康借口查询陌生人信息
+     * 指定摄像机"A300人脸抓拍" "cameraIndexcode"="eca9e1993abe4488bacb875fd68e5935"
+     *
+     * @param startTime
+     * @param endTime
+     * @param cameraIndexCode
+     * @return
+     */
+    private String getStrangerFromHik(String startTime, String endTime, String cameraIndexCode) {
+        JSONArray jsonArray = new JSONArray();
+        JSONObject jsonObject = new JSONObject();
+        jsonArray.add(cameraIndexCode);
+        jsonObject.put("cameraIndexCodes", jsonArray);
+        jsonObject.put("startTime", startTime);
+        jsonObject.put("endTime", endTime);
+        jsonObject.put("pageNo", 1);
+        jsonObject.put("pageSize", 1000);
+        String result = hikvisionUtil.getDataFromHikvision(UrlConstant.URL_FACE_EVENT_STRANGE_, jsonObject);
+        return result;
+    }
+
+
+
+    @Async(value="dpThreadPool")
+    @Override
+    public void asyncSaveStranger(Date date){
+        this.saveStrangerInfo(date);
+    }
+
+    @Async(value="dpThreadPool")
+    @Override
+    public void asyncSaveImportantPeople(Date date){
+        this.saveImportantPeopleInfo(date);
+    }
 }

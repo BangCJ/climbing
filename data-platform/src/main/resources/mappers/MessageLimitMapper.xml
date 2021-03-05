@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bang.ap.dp.web.mapper.MessageLimitMapper">
+  <resultMap id="BaseResultMap" type="com.bang.ap.dp.web.entity.MessageLimitInfo">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="date" jdbcType="VARCHAR" property="date" />
+    <result column="num" jdbcType="BIGINT" property="num" />
+    <result column="create_time" jdbcType="VARCHAR" property="createTime" />
+    <result column="update_time" jdbcType="VARCHAR" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, type ,date,num ,create_time,update_time
+  </sql>
+  <sql id="Add_Column_List">
+   type ,date,num ,create_time,update_time
+  </sql>
+  <sql id="Base_Table">
+    message_limit
+  </sql>
+
+  <select id="selectById" parameterType="int" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <if test="id != null">
+      where id =#{id}
+    </if>
+  </select>
+
+  <select id="getMessageLimitByDateAndType" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from
+    <include refid="Base_Table" />
+
+    <where>
+    <if test="date != null">
+      and date =#{date}
+    </if>
+    <if test="type != null">
+      and type =#{type}
+    </if>
+    </where>
+
+  </select>
+
+  <insert id="addMessageLimit" parameterType="com.bang.ap.dp.web.entity.MessageLimitInfo">
+    insert into
+      <include refid="Base_Table" />
+    (
+      <include refid="Add_Column_List" />
+    )
+    values
+    (
+    #{type,jdbcType=VARCHAR},
+    #{date,jdbcType=VARCHAR},
+    #{num,jdbcType=BIGINT},
+    #{loginTime,jdbcType=VARCHAR},
+    #{createTime,jdbcType=VARCHAR},
+    #{updateTime,jdbcType=VARCHAR}
+    )
+  </insert>
+
+  <update id="updateNumByDateAndType" parameterType="com.bang.ap.dp.web.entity.MessageLimitInfo">
+    update
+    <include refid="Base_Table" />
+    set num =#{num,jdbcType=BIGINT}
+    <where>
+    <if test="date != null">
+      and date =#{date}
+    </if>
+    <if test="type != null">
+      and type =#{type}
+    </if>
+    </where>
+  </update>
+
+
+
+
+</mapper>

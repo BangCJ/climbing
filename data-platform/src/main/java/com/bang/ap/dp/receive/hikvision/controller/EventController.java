@@ -2,6 +2,7 @@ package com.bang.ap.dp.receive.hikvision.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.bang.ap.dp.analysis.service.DataPesistenceService;
 import com.bang.ap.dp.cons.UrlConstant;
 import com.bang.ap.dp.receive.hikvision.service.EventService;
 import com.bang.ap.dp.utils.HikvisionUtil;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 
 @RestController
 @RequestMapping("/event")
@@ -20,6 +22,9 @@ public class EventController {
 
     @Autowired
     EventService eventService;
+
+    @Autowired
+    private DataPesistenceService dataPesistenceService;
 
     /**
      * 按事件类型订阅事件
@@ -93,6 +98,47 @@ public class EventController {
         }
         return "success";
     }
+
+    /**
+     * 事件回调
+     * 对应事件类型：重点人员识别事件，编号：1644175361
+     *
+     * @return
+     */
+    @RequestMapping(path = "/onEvent/importantPeople")
+    @ResponseBody
+    public String importantPeople( @RequestBody JSONObject jsonObject) {
+        log.info("接收到事件/onEvent/importantPeople回调信息:");
+        log.info(jsonObject.toJSONString());
+        try {
+            //do things about importantPeopleInfo
+            dataPesistenceService.asyncSaveImportantPeople(new Date());
+        } catch (Exception e) {
+            log.error("处理重点人员识别事件回调发生异常", e);
+        }
+        return "success";
+    }
+
+    /**
+     * 事件回调
+     * 对应事件类型：陌生人识别事件，编号：1644171265
+     *
+     * @return
+     */
+    @RequestMapping(path = "/onEvent/stranger")
+    @ResponseBody
+    public String stranger( @RequestBody JSONObject jsonObject) {
+        log.info("接收到事件/onEvent/stranger:");
+        log.info(jsonObject.toJSONString());
+        try {
+            //do things about stranger
+            dataPesistenceService.asyncSaveStranger(new Date());
+        } catch (Exception e) {
+            log.error("处理陌生人识别事件回调发生异常", e);
+        }
+        return "success";
+    }
+
 
 
 }

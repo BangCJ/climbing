@@ -25,6 +25,12 @@ public class EventServiceImpl implements EventService {
     private MessageService messageService;
 
 
+    /**
+     * 处理入侵预警信息
+     *
+     * @param jsonObject
+     * @return
+     */
     @Override
     public boolean doIntrusionWarning(JSONObject jsonObject) {
         WarningInfo warningInfo = new WarningInfo();
@@ -34,7 +40,7 @@ public class EventServiceImpl implements EventService {
         warningInfo.setCreateTime(new Date());
         warningInfo.setUpdateTime(new Date());
         warningInfo.setWarningContent("监测到区域入侵行为");
-        if (StringUtils.isNotEmpty(analysisIntrusionWarning(jsonObject))){
+        if (StringUtils.isNotEmpty(analysisIntrusionWarning(jsonObject))) {
             warningInfo.setWarningAttach(analysisIntrusionWarning(jsonObject));
         }
         warningMapper.addWarningInfo(warningInfo);

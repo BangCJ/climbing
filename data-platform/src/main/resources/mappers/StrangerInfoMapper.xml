@@ -54,8 +54,11 @@
 
   <where>
 
-    <if test="dataTime != null">
-      and data_time =#{dataTime}
+    <if test="bkgUrl != null">
+      and bkg_url =#{bkgUrl}
+    </if>
+    <if test="snapUrl != null">
+      and snap_url =#{snapUrl}
     </if>
 
   </where>

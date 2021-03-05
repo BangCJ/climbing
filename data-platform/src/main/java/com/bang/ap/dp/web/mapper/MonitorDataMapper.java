@@ -1,8 +1,8 @@
 package com.bang.ap.dp.web.mapper;
 
 import com.bang.ap.dp.web.entity.MonitorData;
-import com.bang.ap.dp.web.entity.UserInfo;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,6 +14,8 @@ public interface MonitorDataMapper {
     List<MonitorData> getLastMonitorDataByType(String monitorType);
 
     MonitorData getMonitorDataByParam(MonitorData monitorData);
+
+    List<MonitorData> getMonitorDataByMonitorTypeAndOriginDataTime(@Param("monitorType") String monitorType, @Param("originDataTime") String originDataTime);
 
     void addMonitorData(MonitorData monitorData);
 }

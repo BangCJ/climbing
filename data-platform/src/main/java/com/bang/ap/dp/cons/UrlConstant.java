@@ -77,6 +77,11 @@ public class UrlConstant {
      */
     public static final String URL_SENSOR_VALUE="/api/pems/v1/sensor/search";
 
+    /**
+     * 分页查询消防监测数据
+     */
+    public static final String URL_FIRESENSOR_VALUE="/api/fpms/v1/minitor/data/search";
+
 
 
 }
