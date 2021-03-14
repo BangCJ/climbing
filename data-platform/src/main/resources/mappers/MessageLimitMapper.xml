@@ -59,7 +59,6 @@
     #{type,jdbcType=VARCHAR},
     #{date,jdbcType=VARCHAR},
     #{num,jdbcType=BIGINT},
-    #{loginTime,jdbcType=VARCHAR},
     #{createTime,jdbcType=VARCHAR},
     #{updateTime,jdbcType=VARCHAR}
     )

@@ -60,7 +60,7 @@ public class TencentSMSSendService implements ISMSSendService {
                 return;
             }
             MessageLimitInfo messageLimitInfo = messageLimitMapper.getMessageLimitByDateAndType(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT_DATETYPE), "sms");
-            if (messageLimitInfo != null || messageLimitInfo.getNum() > smsLimit) {
+            if (messageLimitInfo != null && messageLimitInfo.getNum() > smsLimit) {
                 log.error("今天{}短信发送数量超过标准{}，本条短信不做发送处理。", DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT_DATETYPE), smsLimit);
                 return;
             }
@@ -99,7 +99,7 @@ public class TencentSMSSendService implements ISMSSendService {
                 mli.setDate(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT_DATETYPE));
                 mli.setCreateTime(new Date());
                 mli.setUpdateTime(new Date());
-                messageLimitMapper.addMessageLimit(new MessageLimitInfo());
+                messageLimitMapper.addMessageLimit(mli);
             } else {
                 messageLimitMapper.updateNumByDateAndType(DPTimeUtil.getCurrentLocalDateTime(DPConstant.DATE_FORMAT_DATETYPE), "sms", messageLimitInfo.getNum() + 1);
             }

@@ -15,6 +15,7 @@ import com.bang.ap.dp.web.service.MessageService;
 import com.bang.ap.dp.web.service.WarningService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +36,18 @@ public class WarningServiceImpl implements WarningService {
 
     @Autowired
     private MessageService messageService;
+
+
+    static final Map<String, String> roomAndMonitorTypeRelation = ImmutableMap.<String, String>builder()
+            .put("gas", "实验室300")
+            .put("humidity", "实验室300")
+            .put("temp", "实验室300")
+            .put("wind", "实验室300")
+            .put("voicePress", "实验室309")
+            .put("wave", "实验室309")
+            .put("residualCurrent", "实验室309")
+            .put("electricalTemperature", "实验室309")
+            .build();
 
     @Override
     public WarningInfo getWarningInfoById(int id) {
@@ -67,7 +80,7 @@ public class WarningServiceImpl implements WarningService {
         if (Double.valueOf(monitorValue) > Double.valueOf(standArdValue)) {
             WarningInfo warningInfo = new WarningInfo();
             warningInfo.setCode(monitorData.getCode());
-            warningInfo.setWarningArea("实验室300");
+            warningInfo.setWarningArea(roomAndMonitorTypeRelation.get(monitorData.getMonitorType()));
             warningInfo.setWarningType("sensorWarning");
             warningInfo.setWarningTime(DPTimeUtil.formatDate(DPTimeUtil.getNowDate(), DPConstant.DATE_FORMAT_DATETYPE));
             warningInfo.setCreateTime(new Date());
